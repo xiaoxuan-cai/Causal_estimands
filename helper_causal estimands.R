@@ -131,22 +131,28 @@ simulate.counterfactual_outcome_singlet=function(t,tx,y_coeffi_table,c_coeffi_ta
   # parameters for x
   if(all(raw_data$x %in% c(0,1)) & all(tx %in% c(0,1))){type_for_x="binary"}else{type_for_x="continuous"}
   # parameters for y
-  lag_x_on_y=2;model_for_y=c("baseline","c","x","y")
+  lag_x_on_y=2;lag_y_on_y=1;lag_c_on_y=1
+  model_for_y=c("baseline","c","x","y")
   y_coeffi_table$`(Intercept)`[start_t:t]
   baseline_y=y_coeffi_table$`(Intercept)`[start_t:t]
   baseline_y[1]=baseline_y[1]+
     y_coeffi_table$y_1[start_t]*ifelse(start_t-1>0 & !is.na(raw_data$y[start_t-1]),raw_data$y[start_t-1],mean(raw_data$y,na.rm=T))+
     y_coeffi_table$x_1[start_t]*ifelse(start_t-1>0 & !is.na(raw_data$x[start_t-1]),raw_data$x[start_t-1],mean(raw_data$x,na.rm=T))
-  parameters_for_y=list(baseline=baseline_y,
-                        y=y_coeffi_table$y_1[start_t:t],
+  parameters_for_y=list(baseline=as.matrix(baseline_y),
+                        y=as.matrix(y_coeffi_table$y_1[start_t:t]),
                         x=as.matrix(y_coeffi_table[start_t:t,c("x","x_1")]),
-                        c=y_coeffi_table$c[start_t:t],
+                        c=as.matrix(y_coeffi_table$c[start_t:t]),
                         sd=extend(0,periods))
   colnames(parameters_for_y$x)=paste("t",0:(ncol(parameters_for_y$x)-1),sep="-")
+  colnames(parameters_for_y$y)=paste("t",1:ncol(parameters_for_y$y),sep="-")
+  colnames(parameters_for_y$c)=paste("t",0:(ncol(parameters_for_y$c)-1),sep="-")
+  
   simulated_result=sim_y_x_c_univariate(given.c=F,parameters_for_c=parameters_for_c,model_for_c=model_for_c,initial.c = initial.c,
-                                    given.x=T,input.x=tx,type_for_x=type_for_x,
-                                    model_for_y=model_for_y,parameters_for_y=parameters_for_y,lag_x_on_y=lag_x_on_y,n=sum(periods)) 
-
+                                        given.x=T,input.x=tx,type_for_x=type_for_x,
+                                        given.y=F,parameters_for_y=parameters_for_y,model_for_y=model_for_y,
+                                        lag_y_on_y=lag_y_on_y,lag_x_on_y=lag_x_on_y,lag_c_on_y=lag_c_on_y,
+                                        n=sum(periods)) 
+  
   return(simulated_result$y)
 }
 simulate.counterfactual_outcome_singlet_withCI=function(t,tx,y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=5,printFlag=T){
