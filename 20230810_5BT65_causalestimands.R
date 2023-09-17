@@ -8,13 +8,14 @@
 # Explanation: we only consider binary exposure in the paper, therefore, we transform exposure into binary
 #              for the pair of <keycontacts_call_outdegree> + <keycontacts_text_reciprocity_degree>, which both range 0~3
 #                 we merge level 3 to level 2 since there are two few of them
+# Plots: Figure of raw outcome/exposures/covariates
 source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/helper_extract_combine_data.R")
 source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 1_packages.R")
 source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 2_helper functions.R")
 source("/Users/xiaoxuancai/Documents/GitHub/SSMimpute/helper_multipleimputation.R")
-source("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/Rcode/helper_causal estimands.R")
+source("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/helper_causal estimands.R")
 load("/Users/xiaoxuancai/Documents/analysis/subject_5BT65/Data/processed/combined_all_5BT65.RData")
-
+library(xtable)
 # -------------------------------------------------------------------- #
 #             Organize and add variables needed for analysis           #
 # -------------------------------------------------------------------- #
@@ -37,17 +38,20 @@ data=data.frame(Date=data_5BT65$Date,negative_total=data_5BT65$negative_total,
 param=list(list(lagged_param=list(variables=colnames(data)[-1],param=rep(3,length(colnames(data)[-1])))))
 data=add_variables_procedures(data,param);
 data=data.frame(intercept=1,data);colnames(data)
-# plots of outcome/exposure/covariates
+# plots of outcome/exposure/covariates (Figure )
 {
-  par(mar = c(5, 5, 0.5, 0.5))
-  par(mar = c(5, 5, 0.5, 0.5))
+  par(mfrow=c(2,2))
+  par(mar = c(4, 5, 0.1, 0.5))
   plot(1:708,data$negative_total,type="l",bty="n",xlab="Time (days)",ylab="Negative mood",cex.lab=1.8,cex.axis=1.4)
+  text(10,20.2, "a)",cex=2)
   # abline(v=c(1:708)[is.na(data$negative_total)],col="grey")
-  plot(1:708,data$keycontacts_call_totaldegree_binary,bty="n",type="h",xlab="Time (days)",ylab="Degree of outgoing calls",cex.lab=1.8,cex.axis=1.4)
-  plot(1:708,data$keycontacts_text_totaldegree_binary,bty="n",type="h",xlab="Time (days)",ylab="Degree of outgoing texts",cex.lab=1.8,cex.axis=1.4)
-  plot(1:708,data$logit_TAM_phone,bty="n",type="l",xlab="Time (days)",ylab="log(Phone Mobility)",cex.lab=2,cex.axis=1.4)
+  plot(1:708,data$keycontacts_call_totaldegree_binary,ylim=c(0,1.1),bty="n",type="l",xlab="Time (days)",ylab="call with keycontacts",cex.lab=1.8,cex.axis=1.4)
+  text(10,1.06, "b)",cex=2)
+  plot(1:708,data$keycontacts_text_totaldegree_binary,ylim=c(0,1.1),bty="n",type="h",xlab="Time (days)",ylab="text with keycontacts",cex.lab=1.8,cex.axis=1.4)
+  text(10,1.06, "c)",cex=2)
+  plot(1:708,data_5BT65$TAM_phone,ylim=c(0,1.1),bty="n",type="l",xlab="Time (days)",ylab="Phone mobility",cex.lab=1.8,cex.axis=1.4)
+  text(10,1.06, "d)",cex=2)
 }
-
 
 ##################################################################
 ######          SSM ignore modeling of covariates            #####
@@ -106,6 +110,7 @@ data=data.frame(intercept=1,data);colnames(data)
   rownames(ssm_c_all)=rownames(ssm_c$result)
   colnames(ssm_c_all)=c("Estimate","Std.Error","95% CI", "90% CI")
   ssm_c_all
+  xtable(ssm_c_all)
   # Estimate Std.Error          95% CI          90% CI
   # (Intercept)                                     1.614     0.638   (0.361,2.867)   (0.565,2.663)
   # y_1(period1)                                    0.052     0.097   (-0.14,0.243)  (-0.109,0.212)
