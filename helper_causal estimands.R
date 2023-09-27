@@ -4,19 +4,19 @@
 calculate.counterfactual_outcome_singlet=function(t,tx,y_coeffi_table,c_coeffi_table,printFlag=T){
   if(printFlag){
     cat(blue(" =================================================================================================== \n"))
-    cat(blue("This function calculates q-lag effects directly from mathematical expressions of coefficients.\n"))
-    cat(blue("  Caution: it only applied for tx length of 1 to 5.\n"))
-    cat(blue("  Inputs include: a vector/scalar of tx,\n"))
-    cat(blue("                  observational time t,\n"))
+    cat(blue("This function calculates contemporaneous effect and q-lag effects directly from mathematical expressions of coefficients.\n"))
+    cat(blue("  Caution: it only applied for contemporaneous effect or q-lag up to 4"))
+    cat(blue("  Inputs include: observational time t,\n"))
+    cat(blue("                  a vector/scalar of recent tx=(...,x_{t-2},x_{t-1},x_t),\n"))
     cat(blue("                  a table of outcome regression coefficients of all time,\n"))
     cat(blue("                  a table of covariate regression coefficients of all time.\n"))
     cat(blue("  Output is: estimate of a q-lag effect at time t.\n"))
     cat(blue(" =================================================================================================== \n"))
   }
-  if(!all(is.numeric(t) & t %% 1 == 0 & t>=0 & t<=nrow(y_coeffi_table) & t<=nrow(c_coeffi_table))){stop("Chosen t a propriate positive integer between [1,T].")}
+  if(!all(is.numeric(t) & t %% 1 == 0 & t>0 & t<=nrow(y_coeffi_table) & t<=nrow(c_coeffi_table))){stop("Chosen t a propriate positive integer between [1,T].")}
   if(!all(is.data.frame(y_coeffi_table) & is.data.frame(c_coeffi_table))){stop("y_coeffi_table and c_coeffi_table should be data.frame.")}
-  if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Colum names for y_coeffi_table should be: (Intercept), y_1, x, x_1, c.")}
-  if(!all(c("(Intercept)","c_1","x_1","y_1")  %in% colnames(c_coeffi_table))){stop("Colum names for c_coeffi_table should be: (Intercept), c_1, x_1, y_1.")}
+  if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Column names for y_coeffi_table should be: (Intercept), y_1, x, x_1, c.")}
+  if(!all(c("(Intercept)","c_1","x_1","y_1")  %in% colnames(c_coeffi_table))){stop("Column names for c_coeffi_table should be: (Intercept), c_1, x_1, y_1.")}
   
   rho_y=y_coeffi_table$y_1
   beta_1=y_coeffi_table$x
@@ -101,18 +101,18 @@ simulate.counterfactual_outcome_singlet=function(t,tx,y_coeffi_table,c_coeffi_ta
   if(printFlag){
     cat(blue(" =================================================================================================== \n"))
     cat(blue("This function simulates DGP to obtain potential outcomes after t time points.\n"))
-    cat(blue("  Inputs include: a vector/scalar of tx, specified forward as (...,x_{t-2},x_{t-1},x_t),\n"))
-    cat(blue("                  observational time t,\n"))
-    cat(blue("                  a data.frame of outcome regression coefficients of all times,\n"))
-    cat(blue("                  a data.frame of covariate regression coefficients of all times.\n"))
-    cat(blue("                  and a data.frame of raw data of (y,x,c).\n"))
+    cat(blue("  Inputs include:  observational time t,\n"))
+    cat(blue("                   a vector/scalar of recent tx=(...,x_{t-2},x_{t-1},x_t),\n"))
+    cat(blue("                   a data.frame of outcome regression coefficients of all times,\n"))
+    cat(blue("                   a data.frame of covariate regression coefficients of all times.\n"))
+    cat(blue("                   and a data.frame of raw data of (y,x,c).\n"))
     cat(blue("  Output is: estimate of a q-lag effect at time t.\n"))
     cat(blue(" =================================================================================================== \n"))
   }
-  if(!all(is.numeric(t) & t %% 1 == 0 & t>=0 & t<=nrow(y_coeffi_table) & t<=nrow(c_coeffi_table))){stop("Chosen t a propriate positive integer between [1,T].")}
+  if(!all(is.numeric(t) & t %% 1 == 0 & t>0 & t<=nrow(y_coeffi_table) & t<=nrow(c_coeffi_table))){stop("Chosen t a propriate positive integer between [1,T].")}
   if(!all(is.data.frame(y_coeffi_table) & is.data.frame(c_coeffi_table))){stop("y_coeffi_table and c_coeffi_table should be data.frame.")}
-  if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Colume names for y_coeffi_table should contain: (Intercept), y_1, x, x_1, c.")}
-  if(!all(c("(Intercept)","c_1","x_1","y_1") %in% colnames(c_coeffi_table))){stop("Colume names for c_coeffi_table should contain: (Intercept), c_1, x_1, y_1.")}
+  if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Column names for y_coeffi_table should contain: (Intercept), y_1, x, x_1, c.")}
+  if(!all(c("(Intercept)","c_1","x_1","y_1") %in% colnames(c_coeffi_table))){stop("Column names for c_coeffi_table should contain: (Intercept), c_1, x_1, y_1.")}
   if(!is.data.frame(raw_data)){stop("raw_data should be data.frame.")}
   if(!all(c("Date","y","x","c") %in% colnames(raw_data))){stop("Colume names for raw_data should be: Date, y, x, c.")}
   
@@ -127,7 +127,8 @@ simulate.counterfactual_outcome_singlet=function(t,tx,y_coeffi_table,c_coeffi_ta
                         y=c_coeffi_table$y_1[start_t:t],
                         sd=extend(0,periods))
   model_for_c=c("baseline","c","x","y")
-  initial.c=ifelse(!is.na(raw_data$c[start_t]),raw_data$c[start_t],mean(raw_data$c,na.rm = T))
+  # it is difficult to generate the first c, let's give it its true value
+  initial.c=ifelse(!is.na(raw_data$c[start_t]),raw_data$c[start_t],mean(raw_data$c,na.rm = T)) 
   # parameters for x
   if(all(raw_data$x %in% c(0,1)) & all(tx %in% c(0,1))){type_for_x="binary"}else{type_for_x="continuous"}
   # parameters for y
@@ -135,6 +136,9 @@ simulate.counterfactual_outcome_singlet=function(t,tx,y_coeffi_table,c_coeffi_ta
   model_for_y=c("baseline","c","x","y")
   y_coeffi_table$`(Intercept)`[start_t:t]
   baseline_y=y_coeffi_table$`(Intercept)`[start_t:t]
+  # correction on the generation of first y:
+  #     the generation of first y only rely on current x and c, 
+  #     so need to add previous x and c part back
   baseline_y[1]=baseline_y[1]+
     y_coeffi_table$y_1[start_t]*ifelse(start_t-1>0 & !is.na(raw_data$y[start_t-1]),raw_data$y[start_t-1],mean(raw_data$y,na.rm=T))+
     y_coeffi_table$x_1[start_t]*ifelse(start_t-1>0 & !is.na(raw_data$x[start_t-1]),raw_data$x[start_t-1],mean(raw_data$x,na.rm=T))
