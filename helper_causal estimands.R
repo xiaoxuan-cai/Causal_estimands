@@ -337,6 +337,39 @@ calculate.effect_allt_withCI=function(tx,y_coeffi_table,y_coeffi_var_table,c_coe
   #   return(result_nsim)
   # }
 }
+# change name from "calculate.qlag_controlled_direct_effect_allt_withCI"
+calculate.controlled_direct_effect_allt_withCI=function(y_coeffi_table,y_coeffi_var_table,n_sim=5,printFlag=T){
+  if(printFlag){
+    cat(blue(" =================================================================================================== \n"))
+    cat(blue("This function calculates 1-lag controlled direct effect as well as simulated distribution.\n"))
+    cat(blue("  Caution: it only applied for 1-lag controlled direct effect, as all other q-lag controlled direct effects for q>1 is 0"))
+    cat(red ("  The formulat for outcome regression has to be: y_t = intercept + y_{t-1} + x_t + x_{t-1} + c_t\n"))
+    cat(red ("               for covariate regression has to be: c_t = intercept + c_{t-1} + x_{t-1} + c_{t-1}\n"))  
+    cat(blue("  Inputs include: [tx] a vector/scalar of recent tx, specified forward as (...,x_{t-2},x_{t-1},x_t)\n"))
+    cat(blue("                  [y_coeffi_table] a data.frame of outcome regression coefficients of all times\n"))
+    cat(blue("                  [y_coeffi_var_table] a list of outcome regression coefficients Variance Matrix of all times,\n"))
+    cat(blue("                  [n_sim] a number specifying the numbef of random draws.\n"))
+    cat(blue("  Output is: estimate of a distribution of (n_sim copies of) 1-lag controlled direct effect at all times.\n"))
+    cat(blue("             rows represent all time points and columns represent n_sim.\n"))
+    cat(blue(" =================================================================================================== \n"))
+  }
+  if(!is.data.frame(y_coeffi_table)){stop("y_coeffi_table should be data.frame.")}
+  if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Colum names for y_coeffi_table should be: (Intercept), y_1, x, x_1, c.")}
+
+  simulated_coeffi_y=list()
+  for(k in 1:nrow(y_coeffi_table)){
+    simulated_coeffi_y[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(y_coeffi_table[k,]),Sigma=y_coeffi_var_table[[k]]))
+  }
+  
+  result_nsim=matrix(NA,ncol=n_sim,nrow=nrow(y_coeffi_table))
+  for(i in 1:n_sim){
+    y_coeffi_table_temp=list.rbind(lapply(simulated_coeffi_y,function(x){x[i,]}))
+    colnames(y_coeffi_table_temp)=colnames(y_coeffi_table)
+    result_nsim[,i]=y_coeffi_table_temp[,"x_1"]
+  }
+  return(result_nsim)
+}
+
 
 # ========================== simulation version ============================ #
 # tx is a binary vector/scalar, specified forward as (...,x_{t-2},x_{t-1},x_t)
@@ -487,33 +520,6 @@ plot_simulatedCI=function(simulated_dist,probs=c(0.05,0.95),printFlag=T,ylim=c(0
   return(result)
 }
 
-# change name from "calculate.qlag_controlled_direct_effect_allt_withCI"
-simulate.qlag_controlled_direct_effect_allt_withCI=function(n_lags,y_coeffi_table,y_coeffi_var_table,n_sim=5,printFlag=T){
-  if(printFlag){
-    cat(blue(" =================================================================================================== \n"))
-    cat(blue("This function calculates q-lag controlled direct effect directly for all times with CI.\n"))
-    cat(blue("  Inputs include: [n_lags] number of lags,\n"))
-    cat(blue("                  a table of outcome regression coefficients of all time,\n"))
-    cat(blue("                  a table of outcome regression variance of all time,\n"))
-    cat(blue("                  [n_sim] a number specifying the numbef of random draws.\n"))
-    cat(blue("  Output is: estimate of a distribution of (n_sim copies of) q-lag controlled effects at all times.\n"))
-    cat(blue(" =================================================================================================== \n"))
-  }
-  if(!is.data.frame(y_coeffi_table)){stop("y_coeffi_table and c_coeffi_table should be data.frame.")}
-  if(!all(c("(Intercept)","y_1","x",paste("x_",1:n_lags,sep=""),"c") %in% colnames(y_coeffi_table))){stop("Colum names for y_coeffi_table should be: (Intercept), y_1, x, x_1, c.")}
-  simulated_coeffi_y=list()
-  for(k in 1:nrow(y_coeffi_table)){
-    simulated_coeffi_y[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(y_coeffi_table[k,]),Sigma=y_coeffi_var_table[[k]]))
-  }
-  
-  result_nsim=list()
-  for(i in 1:n_sim){
-    y_coeffi_table_temp=list.rbind(lapply(simulated_coeffi_y,function(x){x[i,]}))
-    colnames(y_coeffi_table_temp)=colnames(y_coeffi_table)
-    result_nsim[[i]]=y_coeffi_table_temp[,paste("x_",n_lags,sep="")]
-  }
-  return(result_nsim)
-}
 
 test.positivity=function(tx,data,length){
   if(!is.data.frame(data)){stop("data should be a data.frame.")}
