@@ -5,6 +5,7 @@
 #      only recommended for quick computation for confirmation purpose
 # "calculate.effect_allt_withCI" returns causal effects with CI and is recommanded to be used
 #      tx is a binary vector/scalar, specified forward as (...,x_{t-2},x_{t-1},x_t)
+
 # change name from "calculate.counterfactual_outcome_singlet"
 # Updated on 11/03/2023
 calculate.effect_singlet=function(t,tx,y_coeffi_table,c_coeffi_table,printFlag=T){
@@ -83,6 +84,7 @@ calculate.effect_singlet=function(t,tx,y_coeffi_table,c_coeffi_table,printFlag=T
     }else{return(NA)}
   }else{stop("This function temporarily takes tx of length from 1 to 5.")}
 }
+
 # change name from "calculate.effect_allt"
 # Updated on 11/03/2023
 calculate.effect_allt=function(tx,y_coeffi_table,c_coeffi_table,printFlag=T){
@@ -108,6 +110,7 @@ calculate.effect_allt=function(tx,y_coeffi_table,c_coeffi_table,printFlag=T){
   }
   return(result)
 }
+
 # Created on 11/03/2023
 # this function is created to replace previous "calculate.upto5_lag_effect_allt_withCI",
 #                                              "calculate.upto5_total_effect_allt_withCI",
@@ -337,6 +340,7 @@ calculate.effect_allt_withCI=function(tx,y_coeffi_table,y_coeffi_var_table,c_coe
   #   return(result_nsim)
   # }
 }
+
 # change name from "calculate.qlag_controlled_direct_effect_allt_withCI"
 calculate.controlled_direct_effect_allt_withCI=function(y_coeffi_table,y_coeffi_var_table,n_sim=5,printFlag=T){
   if(printFlag){
@@ -369,7 +373,6 @@ calculate.controlled_direct_effect_allt_withCI=function(y_coeffi_table,y_coeffi_
   }
   return(result_nsim)
 }
-
 
 # ========================== simulation version ============================ #
 # tx is a binary vector/scalar, specified forward as (...,x_{t-2},x_{t-1},x_t)
@@ -520,7 +523,7 @@ plot_simulatedCI=function(simulated_dist,probs=c(0.05,0.95),printFlag=T,ylim=c(0
   return(result)
 }
 
-
+# ========================== positivity plot  ============================== #
 test.positivity=function(tx,data,length){
   if(!is.data.frame(data)){stop("data should be a data.frame.")}
   if(!tx %in% colnames(data)){stop("selected tx are not in the data.")}
@@ -541,4 +544,3 @@ test.positivity=function(tx,data,length){
   }
   return(list(percentage=percentage,details=details))
 }
-
