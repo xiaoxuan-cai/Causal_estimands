@@ -510,10 +510,10 @@ set.seed(3)
 text_1_lag_structural_direct = calculate.controlled_direct_effect_allt_withCI(y_coeffi_table,y_coeffi_var_table,n_sim=1000,printFlag=T)
 # calculate text's 2-step total effect directly with CI
 set.seed(4)
-text_2_step = calculate.effect_allt_withCI(tx=c(1,1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
+text_1_step = calculate.effect_allt_withCI(tx=c(1,1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
 # calculate text's 3-step general effect directly with CI
 set.seed(5)
-text_3_step_general_101 = calculate.effect_allt_withCI(tx=c(1,0,1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
+text_2_step_general_101 = calculate.effect_allt_withCI(tx=c(1,0,1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
 # impulse impact graph at t=600
 t=600;n_sim=1000
 set.seed(1)
@@ -521,11 +521,17 @@ text_qlag_effects_part1=simulate.counterfactual_singlet_withCI(t,tx=c(1,rep(0,10
 set.seed(1)
 text_qlag_effects_part2=simulate.counterfactual_singlet_withCI(t,tx=c(0,rep(0,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
 text_effects_vs_qlag=text_qlag_effects_part1-text_qlag_effects_part2
+set.seed(1)
+text_qstep_effects_part1=simulate.counterfactual_singlet_withCI(t,tx=c(1,rep(1,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
+set.seed(1)
+text_qstep_effects_part2=simulate.counterfactual_singlet_withCI(t,tx=c(0,rep(0,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
+text_effects_vs_qstep=text_qstep_effects_part1-text_qstep_effects_part2
 
 save(text_contemporaneous,
      text_1_lag,text_1_lag_structural_direct,
-     text_2_step,text_3_step_general_101,
+     text_1_step,text_2_step_general_101,
      text_effects_vs_qlag,
+     text_effects_vs_qstep,
      file="/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/result_texts.Rdata")
 load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/result_texts.Rdata")
 
@@ -534,37 +540,41 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
 {
   # text's contemporaneous effect
   # Chosen in maintext of the paper
+  location="/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/"
   pdf(file = paste(location,"contemp_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
-  par(mar = c(2, 6, .1, .1))
-  par(mar = c(2.5, 5, .5, .5))
+  par(mar = c(2, 5, .1, .1))
+  par(mfrow=c(1,1))
   text_contemporaneous_CIband=plot_simulatedCI(t(text_contemporaneous),probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,text_contemporaneous_CIband$mean,type="l",ylab="contemporaneous effect (texts)",xlab="",bty="n", cex.axis=2,cex.lab=2,ylim=c(-3,0.5))
+  plot(1:708,text_contemporaneous_CIband$mean,type="l",ylab="contemporaneous (texts)",xlab="",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-3,0.5))
   polygon(c(1:708,rev(1:708)),c(text_contemporaneous_CIband$upper,rev(text_contemporaneous_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_contemporaneous_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
+  text(10,0.5, "a)",cex=2.5)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
-         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
   dev.off()
   
   # text's 1-lag effect 
   pdf(file = paste(location,"lag1_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
-  par(mar = c(2, 6, .1, .1))
-  par(mar = c(2.5, 5, .5, .5))
+  par(mar = c(2, 5, .1, .1))
+  par(mfrow=c(1,1))
   text_1_lag_CIband=plot_simulatedCI(t(text_1_lag),probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,text_1_lag_CIband$mean,type="l",ylab="1-lag effect (texts)",xlab="Date",bty="n", cex.axis=2,cex.lab=2,ylim=c(-3,0.5))
+  plot(1:708,text_1_lag_CIband$mean,type="l",ylab="1-lag effect (texts)",xlab="Date",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-3,0.5))
   polygon(c(1:708,rev(1:708)),c(text_1_lag_CIband$upper,rev(text_1_lag_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_1_lag_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
+  text(10,0.5, "b)",cex=2.5)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
-         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
+  dev.off()
   
   # unused code for plotting text's q-lag effects for q=2,3,4 for all time points
   # lag2_analytical=list.cbind(lapply(result_alltimepoints_analytical,function(x){x[,3]}))
@@ -605,28 +615,40 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
   
   
   # text's 1-lag structural direct effect
-  par(mar = c(2.5, 5, .5, .5))
+  pdf(file = paste(location,"lag1_controlled_direct_texts.pdf",sep=""),
+      width = 10, # The width of the plot in inches
+      height = 6) # The height of the plot in inches
+  par(mar = c(2, 5, .1, .1))
+  par(mfrow=c(1,1))
   text_1_lag_structural_direct_CIband = plot_simulatedCI(t(text_1_lag_structural_direct),probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,text_1_lag_structural_direct_CIband$mean,type="l",ylab="1-lag controlled direct effect (texts)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-3,0.5))
+  plot(1:708,text_1_lag_structural_direct_CIband$mean,type="l",ylab="1-lag controlled direct (texts)",xlab="# lags",bty="n",cex.axis=2.5,cex.lab=2.3,ylim=c(-3,0.5))
   polygon(c(1:708,rev(1:708)),c(text_1_lag_structural_direct_CIband$upper,rev(text_1_lag_structural_direct_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_1_lag_structural_direct_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
+  text(10,0.5, "c)",cex=2.5)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
-         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
+  dev.off()
   
-  # text's 2-step total effect
-  par(mar = c(2.5, 5, .5, .5))
-  text_2_step_CIband = plot_simulatedCI(t(text_2_step),probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,text_2_step_CIband$mean,type="l",ylab="2-step total effect (calls)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-6,0.5))
-  polygon(c(1:708,rev(1:708)),c(text_2_step_CIband$upper,rev(text_2_step_CIband$lower)),col="grey90",border="grey")
-  points(1:708,text_2_step_CIband$mean,type="l")
+  # text's 1-step total effect
+  pdf(file = paste(location,"step1_total_texts.pdf",sep=""),
+      width = 10, # The width of the plot in inches
+      height = 6) # The height of the plot in inches
+  par(mar = c(2, 5, .1, .1))
+  par(mfrow=c(1,1))
+  text_1_step_CIband = plot_simulatedCI(t(text_1_step),probs=c(0.05,0.95),printFlag=F)
+  plot(1:708,text_1_step_CIband$mean,type="l",ylab="1-step total (texts)",xlab="# lags",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-6,0.5))
+  polygon(c(1:708,rev(1:708)),c(text_1_step_CIband$upper,rev(text_1_step_CIband$lower)),col="grey90",border="grey")
+  points(1:708,text_1_step_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
+  text(10,0.5, "d)",cex=2.5)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
-         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
+  dev.off()
   
   # text's 3-step general effect
   par(mar = c(2.5, 5, .5, .5))
@@ -641,16 +663,42 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
   
   # impulse impact graph at t=600
+  pdf(file = paste(location,"impulse_impact_texts.pdf",sep=""),
+      width = 10, # The width of the plot in inches
+      height = 6) # The height of the plot in inches
+  par(mar = c(5, 5, .1, .1))
+  par(mfrow=c(1,1))
   text_effects_vs_qlag_CIband=plot_simulatedCI(text_effects_vs_qlag,probs=c(0.05,0.95),printFlag=F)
-  plot(0:10,text_effects_vs_qlag_CIband$mean,type="l",ylab="q-lag effect at t=600 (texts)",xlab="# lags",bty="n",cex.axis=2,cex.lab=2,ylim=c(-2.5,0.5))
+  plot(0:10,text_effects_vs_qlag_CIband$mean,type="l",ylab="q-lag at t=600 (texts)",xlab="# lags",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-2.5,0.6))
   polygon(c(0:10,rev(0:10)),c(text_effects_vs_qlag_CIband$upper,rev(text_effects_vs_qlag_CIband$lower)),col="grey90",border="grey")
   points(0:10,text_effects_vs_qlag_CIband$mean,type="l")
   points(0:10,text_effects_vs_qlag_CIband$mean,pch=16)
   abline(h=0,lty=3,lwd=2)
+  text(0.2,0.6, "a)",cex=2.5)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+  dev.off()
+  
+  # impulse response graph at t=600
+  pdf(file = paste(location,"impulse_response_texts.pdf",sep=""),
+      width = 10, # The width of the plot in inches
+      height = 6) # The height of the plot in inches
+  par(mar = c(5, 5, .1, .1))
+  par(mfrow=c(1,1))
+  text_effects_vs_qstep_CIband=plot_simulatedCI(text_effects_vs_qstep,probs=c(0.05,0.95),printFlag=F)
+  plot(0:10,text_effects_vs_qstep_CIband$mean,type="l",ylab="q-step total at t=600 (texts)",xlab="# lags",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-9.5,0.6))
+  polygon(c(0:10,rev(0:10)),c(text_effects_vs_qstep_CIband$upper,rev(text_effects_vs_qstep_CIband$lower)),col="grey90",border="grey")
+  points(0:10,text_effects_vs_qstep_CIband$mean,type="l")
+  points(0:10,text_effects_vs_qstep_CIband$mean,pch=16)
+  abline(h=0,lty=3,lwd=2)
+  text(0.2,0.6, "b)",cex=2.5)
+  legend("bottomright",legend=c("estimate", "95% CI"),
+         pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
+         bty = "n", # remove the bounder of the legend
+         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
+  dev.off()
 }
 
 ########################################################################
