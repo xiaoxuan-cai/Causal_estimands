@@ -36,16 +36,16 @@ data=data.frame(Date=data_5BT65$Date,negative_total=data_5BT65$negative_total,
 param=list(list(lagged_param=list(variables=colnames(data)[-1],param=rep(3,length(colnames(data)[-1])))))
 data=add_variables_procedures(data,param);
 data=data.frame(intercept=1,data);colnames(data)
-# plots of outcome/exposure/covariates (Figure )
+# plots of outcome/exposure/covariates (Figure 3)
 {
   par(mfrow=c(2,2))
   par(mar = c(4, 5, 0.1, 0.5))
   plot(1:708,data$negative_total,type="l",bty="n",xlab="Time (days)",ylab="Negative mood",cex.lab=1.8,cex.axis=1.4)
   text(10,20.2, "a)",cex=2)
   # abline(v=c(1:708)[is.na(data$negative_total)],col="grey")
-  plot(1:708,data$keycontacts_call_totaldegree_binary,ylim=c(0,1.1),bty="n",type="l",xlab="Time (days)",ylab="Degree of call with keycontacts",cex.lab=1.8,cex.axis=1.4)
+  plot(1:708,data$keycontacts_call_totaldegree_binary,ylim=c(0,1.1),bty="n",type="l",xlab="Time (days)",ylab="Call connectivity",cex.lab=1.8,cex.axis=1.4)
   text(10,1.06, "b)",cex=2)
-  plot(1:708,data$keycontacts_text_reciprocity_degree_binary,ylim=c(0,1.1),bty="n",type="h",xlab="Time (days)",ylab="Degree of text with keycontacts",cex.lab=1.8,cex.axis=1.4)
+  plot(1:708,data$keycontacts_text_reciprocity_degree_binary,ylim=c(0,1.1),bty="n",type="h",xlab="Time (days)",ylab="Text connectivity",cex.lab=1.8,cex.axis=1.4)
   text(10,1.06, "c)",cex=2)
   plot(1:708,data_5BT65$TAM_phone,ylim=c(0,1.1),bty="n",type="l",xlab="Time (days)",ylab="Phone mobility",cex.lab=1.8,cex.axis=1.4)
   text(10,1.06, "d)",cex=2)
@@ -514,6 +514,10 @@ text_1_step = calculate.effect_allt_withCI(tx=c(1,1),y_coeffi_table=y_coeffi_tab
 # calculate text's 3-step general effect directly with CI
 set.seed(5)
 text_2_step_general_101 = calculate.effect_allt_withCI(tx=c(1,0,1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
+# calculate text's 4-step general effect directly with CI
+set.seed(6)
+text_3_step_general_0101 = calculate.effect_allt_withCI(tx=c(0,1,0,1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
+
 # impulse impact graph at t=600
 t=600;n_sim=1000
 set.seed(1)
@@ -530,6 +534,7 @@ text_effects_vs_qstep=text_qstep_effects_part1-text_qstep_effects_part2
 save(text_contemporaneous,
      text_1_lag,text_1_lag_structural_direct,
      text_1_step,text_2_step_general_101,
+     text_3_step_general_0101,
      text_effects_vs_qlag,
      text_effects_vs_qstep,
      file="/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/result_texts.Rdata")
@@ -539,7 +544,7 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
 # plots
 {
   # text's contemporaneous effect
-  # Chosen in maintext of the paper
+  # Chosen in maintext of the paper (Figure 4a)
   location="/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/"
   pdf(file = paste(location,"contemp_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
@@ -558,7 +563,7 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
   dev.off()
   
-  # text's 1-lag effect 
+  # text's 1-lag effect  (Figure 4b)
   pdf(file = paste(location,"lag1_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
@@ -614,7 +619,7 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
   #        lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
   
   
-  # text's 1-lag structural direct effect
+  # text's 1-lag structural direct effect  (Figure 4c)
   pdf(file = paste(location,"lag1_controlled_direct_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
@@ -632,7 +637,7 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
   dev.off()
   
-  # text's 1-step total effect
+  # text's 1-step total effect  (Figure 4d)
   pdf(file = paste(location,"step1_total_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
@@ -650,19 +655,25 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
   dev.off()
   
-  # text's 3-step general effect
-  par(mar = c(2.5, 5, .5, .5))
-  text_3_step_general_101_CIband = plot_simulatedCI(t(text_3_step_general_101),probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,text_3_step_general_101_CIband$mean,type="l",ylab="3-step general effect (calls)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-6,0.5))
-  polygon(c(1:708,rev(1:708)),c(text_3_step_general_101_CIband$upper,rev(text_3_step_general_101_CIband$lower)),col="grey90",border="grey")
-  points(1:708,text_3_step_general_101_CIband$mean,type="l")
+  # text's 3-step general effect (Figure 6a)
+  pdf(file = paste(location,"step3_general_0101_texts.pdf",sep=""),
+      width = 10, # The width of the plot in inches
+      height = 6) # The height of the plot in inches
+  par(mar = c(5, 5, .1, .1))
+  par(mfrow=c(1,1))
+  text_3_step_general_0101_CIband = plot_simulatedCI(t(text_3_step_general_0101),probs=c(0.05,0.95),printFlag=F)
+  plot(1:708,text_3_step_general_0101_CIband$mean,type="l",ylab="4-step general effect (texts)",xlab="days",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-4,0.5))
+  polygon(c(1:708,rev(1:708)),c(text_3_step_general_0101_CIband$upper,rev(text_3_step_general_0101_CIband$lower)),col="grey90",border="grey")
+  points(1:708,text_3_step_general_0101_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
+  text(10,0.5, "a)",cex=2.5)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
-         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
+  dev.off()
   
-  # impulse impact graph at t=600
+  # impulse impact graph at t=600 (Figure 5a)
   pdf(file = paste(location,"impulse_impact_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
@@ -681,7 +692,7 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
   dev.off()
   
-  # impulse response graph at t=600
+  # impulse response graph at t=600 (Figure 5b)
   pdf(file = paste(location,"impulse_response_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
@@ -706,43 +717,42 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
 ########################################################################
 t=600;n_sim=1000
 set.seed(1)
-qstep1001001=simulate.counterfactual_singlet_withCI(t,tx=c(1,0,0,1,0,0,1,rep(0,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
+qstep1001001=simulate.counterfactual_singlet(t,tx=c(1,0,0,1,0,0,1,rep(0,10)),y_coeffi_table,c_coeffi_table,raw_data,printFlag=T)
 set.seed(1)
-qstep0101010=simulate.counterfactual_singlet_withCI(t,tx=c(0,1,0,1,0,1,0,rep(0,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
+qstep0101010=simulate.counterfactual_singlet(t,tx=c(0,1,0,1,0,1,0,rep(0,10)),y_coeffi_table,c_coeffi_table,raw_data,printFlag=T)
 set.seed(1)
-qstep1110000=simulate.counterfactual_singlet_withCI(t,tx=c(1,1,1,0,0,0,0,rep(0,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
+qstep1110000=simulate.counterfactual_singlet(t,tx=c(1,1,1,0,0,0,0,rep(0,10)),y_coeffi_table,c_coeffi_table,raw_data,printFlag=T)
 set.seed(1)
-qstep0000000=simulate.counterfactual_singlet_withCI(t,tx=c(0,0,0,0,0,0,0,rep(0,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
+qstep0000000=simulate.counterfactual_singlet(t,tx=c(0,0,0,0,0,0,0,rep(0,10)),y_coeffi_table,c_coeffi_table,raw_data,printFlag=T)
 
 qstep1001001_CIband_simulated_600=plot_simulatedCI(qstep1001001-qstep0000000,probs=c(0.05,0.95),printFlag=F)
 qstep0101010_CIband_simulated_600=plot_simulatedCI(qstep0101010-qstep0000000,probs=c(0.05,0.95),printFlag=F)
 qstep1110000_CIband_simulated_600=plot_simulatedCI(qstep1110000-qstep0000000,probs=c(0.05,0.95),printFlag=F)
-plot(0:16,qstep1110000_CIband_simulated_600$mean,type="l",ylab="Effect of 1-week intervention (texts)",xlab="# days",bty="n",cex.axis=2,cex.lab=2,ylim=c(-4,0.5))
+
+# Figure 6b
+pdf(file = paste(location,"optimal_tx.pdf",sep=""),
+    width = 10, # The width of the plot in inches
+    height = 6) # The height of the plot in inches
+par(mar = c(5, 5, 1.5, .1))
+par(mfrow=c(1,1))
+plot(0:16,qstep1110000-qstep0000000,type="l",ylab="7-step general effect(texts)",xlab="days",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-4,0.7))
 polygon(x = c(-0.1,6,6,-0.1), 
-        y = c(-4,-4,0.5,0.5),
-        col = "lightcyan",border ="NA")
-points(0:16,qstep1110000_CIband_simulated_600$mean,type="l")
-text(2.9,0.2,"1-week of intervention",cex=1.7)
-points(0:16,qstep1110000_CIband_simulated_600$mean,pch=15)
-legend("bottomright",legend=c("tx=(1,1,1,0,0,0,0)","",""),
-       pch = c(15,16,17), lty=c(1,2,4), col=c("black","white","white"),
-       bty = "n", # remove the bounder of the legend
-       lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
-points(0:16,qstep0101010_CIband_simulated_600$mean,type="l",pch=17,lty=2, col="brown")
-points(0:16,qstep0101010_CIband_simulated_600$mean,pch=16,lty=3, col="brown")
-legend("bottomright",legend=c("tx=(1,1,1,0,0,0,0)","tx=(0,1,0,1,0,1,0)",""),
-       pch = c(15,16,17), lty=c(1,2,4), col=c("black","brown","white"),
-       bty = "n", # remove the bounder of the legend
-       lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
-points(0:16,qstep1001001_CIband_simulated_600$mean,type="l",pch=15,lty=4,col="blue")
-points(0:16,qstep1001001_CIband_simulated_600$mean,pch=17,lty=2,col="blue")
+        y = c(-4,-4,0.7,0.7),
+        col = "lightgrey",border ="NA")
+text(2.9,0.3,"1-week of intervention",cex=1.8)
+points(0:16,qstep1110000-qstep0000000,type="l")
+points(0:16,qstep1110000-qstep0000000,pch=15,cex=2)
+points(0:16,qstep0101010-qstep0000000,type="l",pch=17,lty=2, col="brown",cex=2)
+points(0:16,qstep0101010-qstep0000000,pch=16,lty=3, col="brown",cex=2)
+points(0:16,qstep1001001-qstep0000000,type="l",pch=15,lty=4,col="blue",cex=2)
+points(0:16,qstep1001001-qstep0000000,pch=17,lty=2,col="blue",cex=2)
 abline(v=6,lty=2,lwd=2,col="red")
-text(0,.5,"b)",cex=2)
+text(0,.7,"b)",cex=2.5)
 legend("bottomright",legend=c("tx=(1,1,1,0,0,0,0)","tx=(0,1,0,1,0,1,0)","tx=(1,0,0,1,0,0,1)"),
        pch = c(15,16,17), lty=c(1,2,4), col=c("black","brown","blue"),
        bty = "n", # remove the bounder of the legend
-       lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
-
+       lwd = c(1,1,1), pt.bg = c(NA,"grey90"),cex=2.5)
+dev.off()
 
 ##############################################################
 ######         test positivity assumption                #####
