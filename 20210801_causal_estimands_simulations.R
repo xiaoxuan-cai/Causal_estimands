@@ -1,8 +1,8 @@
 # File: outcome regression using statespace model
 # Date: 2021.08.01
-source("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/Rcode/Summary 1_packages.R")
-source("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/Rcode/Summary 2_helper functions.R")
-source("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/Rcode/helper_causal estimands.R")
+source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 1_packages.R")
+source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 2_helper functions.R")
+source("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/helper_causal estimands.R")
 
 #################################################################################################################
 ##        stable coefficients + treatment/outcome-covariate feedback + continuous tx/outcome/covariate         ##
@@ -27,18 +27,23 @@ parameters_for_x=list(baseline=extend(0,periods),
                       sd=extend(sqrt(0.1),periods))
 model_for_x=c("baseline","c","x","y")
 # parameters for y
-lag_x_on_y=2;treatment_effects=matrix(c(-2,-1),ncol=lag_x_on_y,byrow=T)
+lag_x_on_y=2;lag_c_on_y=1;lag_y_on_y=1
+treatment_effects=matrix(c(-2,-1),ncol=lag_x_on_y,byrow=T)
 model_for_y=c("baseline","c","x","y")
 parameters_for_y=list(baseline=extend(35,periods),
-                      y=extend(0.5,periods),
+                      y=as.matrix(extend(0.5,periods)),
                       x=extend_into_matrix(treatment_effects,periods),
-                      c=extend(-1,periods),
+                      c=as.matrix(extend(-1,periods)),
                       sd=extend(sqrt(0.1),periods))
 colnames(parameters_for_y$x)=paste("t",0:(ncol(parameters_for_y$x)-1),sep="-")
+colnames(parameters_for_y$y)=paste("t",1:ncol(parameters_for_y$y),sep="-")
+colnames(parameters_for_y$c)=paste("t",0:(ncol(parameters_for_y$c)-1),sep="-")
 # generate data
-simulation=sim_y_x_single_c(given.c=F,model_for_c=model_for_c,parameters_for_c=parameters_for_c,
-                                      model_for_x=model_for_x,parameters_for_x=parameters_for_x,type_for_x="continuous",
-                                      model_for_y=model_for_y,parameters_for_y=parameters_for_y,lag_x_on_y=lag_x_on_y,n=sum(periods))
+simulation=sim_y_x_c_univariate(given.c=F,input.c=NULL,parameters_for_c=parameters_for_c,model_for_c=model_for_c,initial.c=NULL,
+                                given.x=F,input.x=NULL,parameters_for_x=parameters_for_x,model_for_x=model_for_x,initial.x=NULL,type_for_x="continuous",
+                                given.y=F,input.y=NULL,parameters_for_y=parameters_for_y,model_for_y=model_for_y,initial.y=NULL,
+                                lag_y_on_y=lag_y_on_y,lag_x_on_y=lag_x_on_y,lag_c_on_y=lag_c_on_y,interaction_pairs=NULL,
+                                n=sum(periods),printFlag=T)
 data=data.frame(Date=Sys.Date()-days(length(simulation$y):1),y=simulation$y,x=simulation$x,c=simulation$c,simulation$noise_y)
 print(head(data))
 plot(simulation$c);plot(simulation$x);plot(simulation$y);plot(simulation$noise_y)
@@ -51,18 +56,18 @@ data=add_variables_procedures(data,param)
 result_y=summary(lm(y~y_1+x+x_1+c,data=data[-c(1),]));result_y
 # Coefficients:
 #               Estimate Std. Error t value Pr(>|t|)    
-#   (Intercept) 35.75967    0.39896   89.63   <2e-16 ***
-#   y_1          0.48284    0.00911   53.00   <2e-16 ***
-#   x           -2.04020    0.03121  -65.36   <2e-16 ***
-#   x_1         -0.91527    0.03979  -23.00   <2e-16 ***
-#   c           -1.07875    0.02957  -36.48   <2e-16 ***
+#   (Intercept) 34.120015   0.409160   83.39   <2e-16 ***
+#   y_1          0.521032   0.009281   56.14   <2e-16 ***
+#   x           -1.970228   0.031350  -62.84   <2e-16 ***
+#   x_1         -1.070711   0.041688  -25.68   <2e-16 ***
+#   c           -0.959736   0.031287  -30.68   <2e-16 ***
 result_c=summary(lm(c~c_1+x_1+y_1,data=data[-c(1),]));result_c
 # Coefficients:
 #               Estimate Std. Error t value Pr(>|t|)    
-#   (Intercept)  7.18522    0.84517   8.502  < 2e-16 ***
-#   c_1          0.18791    0.04049   4.641 3.94e-06 ***
-#   x_1          0.99001    0.03692  26.813  < 2e-16 ***
-#   y_1         -0.20273    0.01523 -13.308  < 2e-16 ***
+# (Intercept)    7.32109    0.77945   9.393  < 2e-16 ***
+#   c_1          0.17448    0.03815   4.573 5.41e-06 ***
+#   x_1          0.97918    0.03555  27.541  < 2e-16 ***
+#   y_1         -0.20456    0.01399 -14.622  < 2e-16 ***
 
 ## ------------------------------------------- ##
 ## potential outcome analysis  ##
