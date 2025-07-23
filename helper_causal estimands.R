@@ -91,7 +91,7 @@ calculate.causaleffect_singlet=function(single_t,tx,y_coeffi_table,c_coeffi_tabl
 # Note: this function now supports calculating effects for any arbitrary collection of time points, including a single time point or all time points.
 #       which covers the function calculate.causaleffect_singlet when t only has one time point
 #       which covers the function calculate.effect_allt_withCI when CI=T
-#       this function also inherets all checking-in on parameters from "calculate.causaleffect_singlet"
+#       this function also inherets all checking-in on parameters from "calculate.causaleffect_singlet" and "calculate.effect_allt_withCI"
 calculate.causaleffect=function(t,tx,y_coeffi_table,c_coeffi_table,
                                 CI=F,n_sim=NA,y_coeffi_var_table=NA,c_coeffi_var_table=NA,seed=1,
                                 printFlag=T){
@@ -393,37 +393,58 @@ calculate.causaleffect=function(t,tx,y_coeffi_table,c_coeffi_table,
   
 }
 
-# change name from "calculate.qlag_controlled_direct_effect_allt_withCI"
-calculate.controlled_direct_effect_allt_withCI=function(y_coeffi_table,y_coeffi_var_table,n_sim=5,printFlag=T){
+# Updated on 11/03/2023:
+# Renamed function from "calculate.qlag_controlled_direct_effect_allt_withCI" to "calculate.controlled_direct_effect_allt_withCI"
+# Update on 07/23/2025:
+# Renamed function from "calculate.controlled_direct_effect_allt_withCI" to "calculate.controlled_direct_effect"
+# Note: this function now supports calculating effects for any arbitrary collection of time points, including a single time point or all time points.
+calculate.controlled_direct_effect=function(t,y_coeffi_table,
+                                            CI=F,n_sim=NA,y_coeffi_var_table=NA,seed=1,
+                                            printFlag=T){
   if(printFlag){
     cat(blue(" =================================================================================================== \n"))
     cat(blue("This function calculates 1-lag controlled direct effect as well as simulated distribution.\n"))
     cat(blue("  Caution: it only applied for 1-lag controlled direct effect, as all other q-lag controlled direct effects for q>1 is 0"))
     cat(red ("  The formulat for outcome regression has to be: y_t = intercept + y_{t-1} + x_t + x_{t-1} + c_t\n"))
     cat(red ("               for covariate regression has to be: c_t = intercept + c_{t-1} + x_{t-1} + c_{t-1}\n"))  
-    cat(blue("  Inputs include: [tx] a vector/scalar of recent tx, specified forward as (...,x_{t-2},x_{t-1},x_t)\n"))
+    cat(blue("  Inputs include: [t] a vector/scalar of time points,\n"))
+    cat(blue("                  [tx] a vector/scalar of recent tx=(...,x_{t-2},x_{t-1},x_t),\n"))
     cat(blue("                  [y_coeffi_table] a data.frame of outcome regression coefficients of all times\n"))
     cat(blue("                  [y_coeffi_var_table] a list of outcome regression coefficients Variance Matrix of all times,\n"))
+    cat(blue("                  [CI] a logical T/F to return estimate with CI or not,\n"))
     cat(blue("                  [n_sim] a number specifying the numbef of random draws.\n"))
-    cat(blue("  Output is: estimate of a distribution of (n_sim copies of) 1-lag controlled direct effect at all times.\n"))
-    cat(blue("             rows represent all time points and columns represent n_sim.\n"))
+    cat(blue("  Output is: estimate of a 1-lag controlled direct effect and its distribution.\n"))
+    cat(blue("             when CI=F, return a vector of estimate of a 1-lag controlled direct effect for time point(s) t.\n"))
+    cat(blue("             when CI=T, return a matrix with rows representing all time points and columns representing n_sim.\n"))
     cat(blue(" =================================================================================================== \n"))
   }
+  if(!all(is.numeric(t) & t %% 1 == 0 & t>0 & t<=nrow(y_coeffi_table) & t<=nrow(c_coeffi_table))){stop("Chosen time point(s) to be a propriate positive integer between [1,T].")}
   if(!is.data.frame(y_coeffi_table)){stop("y_coeffi_table should be data.frame.")}
   if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Colum names for y_coeffi_table should be: (Intercept), y_1, x, x_1, c.")}
-
-  simulated_coeffi_y=list()
-  for(k in 1:nrow(y_coeffi_table)){
-    simulated_coeffi_y[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(y_coeffi_table[k,]),Sigma=y_coeffi_var_table[[k]]))
+  if(CI){
+    if(!all(is.numeric(n_sim) & n_sim %% 1 == 0 & n_sim>0)){stop("please provide n_sim as a positive number.")}
+    if(!is.list(y_coeffi_var_table)){stop("y_coeffi_var_table and c_coeffi_var_table should be list.")}
+    if(length(y_coeffi_var_table)!=nrow(y_coeffi_table)){stop("y_coeffi_var_table/y_coeffi_table and c_coeffi_var_table/c_coeffi_table should of the same length.")}
   }
   
-  result_nsim=matrix(NA,ncol=n_sim,nrow=nrow(y_coeffi_table))
-  for(i in 1:n_sim){
-    y_coeffi_table_temp=list.rbind(lapply(simulated_coeffi_y,function(x){x[i,]}))
-    colnames(y_coeffi_table_temp)=colnames(y_coeffi_table)
-    result_nsim[,i]=y_coeffi_table_temp[,"x_1"]
+  if(!CI){
+    result = y_coeffi_table[t,"x_1"]
+    return(result)
+  }else{
+    set.seed(seed)
+    simulated_coeffi_y=list()
+    for(k in 1:nrow(y_coeffi_table)){
+      simulated_coeffi_y[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(y_coeffi_table[k,]),Sigma=y_coeffi_var_table[[k]]))
+    }
+    result_nsim=matrix(NA,ncol=n_sim,nrow=length(t))
+    rownames(result_nsim)=as.character(t)
+    for(i in 1:n_sim){
+      y_coeffi_table_temp=list.rbind(lapply(simulated_coeffi_y,function(x){x[i,]}))
+      colnames(y_coeffi_table_temp)=colnames(y_coeffi_table)
+      result_nsim[,i]=y_coeffi_table_temp[t,"x_1"]
+    }
+    return(result_nsim)
   }
-  return(result_nsim)
 }
 
 # ========================== simulation version ============================ #
