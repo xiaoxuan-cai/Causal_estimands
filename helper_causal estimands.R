@@ -1,14 +1,17 @@
-# helper functions for paper 1
+# helper functions for paper "Causal estimands and identification of time-varying effects in non-stationary time series from N-of-1 mobile device data"
 
 # ===================== mathematical derivation version ===================== #
-# "calculate.effect_singlet" and "calculate.effect_allt" returns causal effects without CI
-#      only recommended for quick computation for confirmation purpose
-# "calculate.effect_allt_withCI" returns causal effects with CI and is recommanded to be used
-#      tx is a binary vector/scalar, specified forward as (...,x_{t-2},x_{t-1},x_t)
+# "calculate.causaleffect" adopt all from calculate."causaleffect_singlet" and "calculate.effect_allt_withCI"
+#  which calculate causal effects for 1/multiple/all timepoints with/without CI
 
-# change name from "calculate.counterfactual_outcome_singlet"
-# Updated on 11/03/2023
-calculate.effect_singlet=function(t,tx,y_coeffi_table,c_coeffi_table,printFlag=T){
+# Updated on 11/03/2023:
+# Renamed function from "calculate.counterfactual_outcome_singlet" to "calculate.effect_allt"
+# Updated on 07/23/2025:
+# Renamed function from "calculate.effect_allt" to "calculate.causaleffect_singlet"
+# Note: from now on, this function (`calculate.causaleffect_singlet`) is no longer used independently, 
+#       as its functionality has been fully incorporated into the main function "calculate.causaleffect"
+#       since this function no longer used independently, all checking-in on parameters are removed
+calculate.causaleffect_singlet=function(single_t,tx,y_coeffi_table,c_coeffi_table,printFlag=T){
   if(printFlag){
     cat(blue(" =================================================================================================== \n"))
     cat(blue("This function calculates contemporaneous effect and q-lag effects directly from mathematical expressions of coefficients.\n"))
@@ -22,10 +25,6 @@ calculate.effect_singlet=function(t,tx,y_coeffi_table,c_coeffi_table,printFlag=T
     cat(blue("  Output is: contemporaneous or q-lag effect at time t.\n"))
     cat(blue(" =================================================================================================== \n"))
   }
-  if(!all(is.numeric(t) & t %% 1 == 0 & t>0 & t<=nrow(y_coeffi_table) & t<=nrow(c_coeffi_table))){stop("Chosen t a propriate positive integer between [1,T].")}
-  if(!all(is.data.frame(y_coeffi_table) & is.data.frame(c_coeffi_table))){stop("y_coeffi_table and c_coeffi_table should be data.frame.")}
-  if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Column names for y_coeffi_table should be: (Intercept), y_1, x, x_1, c.")}
-  if(!all(c("(Intercept)","c_1","x_1","y_1")  %in% colnames(c_coeffi_table))){stop("Column names for c_coeffi_table should be: (Intercept), c_1, x_1, y_1.")}
   
   # extract coefficients to be more easy to access
   rho_y=y_coeffi_table$y_1
@@ -39,133 +38,129 @@ calculate.effect_singlet=function(t,tx,y_coeffi_table,c_coeffi_table,printFlag=T
   
   if(length(tx)==1){
     if(printFlag){cat("Compute contemporanous effect.")}
-    return(beta_1[t]*tx)
+    return(beta_1[single_t]*tx)
   }else if(length(tx)==2){
-    if(t>1){
+    if(single_t>1){
       if(printFlag){cat("Compute 1-lag effect (treatment of length 2).")}
-      result=beta_1[t]*tx[2]+(beta_2[t]+beta_c[t]*mu_x[t]+rho_y[t]*beta_1[t-1]+beta_c[t]*mu_y[t]*beta_1[t-1])*tx[1]
+      result=beta_1[single_t]*tx[2]+(beta_2[single_t]+beta_c[single_t]*mu_x[single_t]+rho_y[single_t]*beta_1[single_t-1]+beta_c[single_t]*mu_y[single_t]*beta_1[single_t-1])*tx[1]
       return(result)
     }else{return(NA)}
   }else if(length(tx)==3){
-    if(t>2){
+    if(single_t>2){
       if(printFlag){cat("Compute 2-lag effect (treatment of length 3).")}
-      term_a=beta_c[t]*rho_c[t]+rho_y[t]*beta_c[t-1]+beta_c[t]*mu_y[t]*beta_c[t-1]
-      term_b=(rho_y[t]+beta_c[t]*mu_y[t])*rho_y[t-1]+term_a*mu_y[t-1]
-      result=beta_1[t]*tx[3]+
-        (beta_2[t]+beta_c[t]*mu_x[t]+(rho_y[t]+beta_c[t]*mu_y[t])*beta_1[t-1])*tx[2]+
-        ((rho_y[t]+beta_c[t]*mu_y[t])*beta_2[t-1]+term_a*mu_x[t-1]+term_b*beta_1[t-2])*tx[1]
+      term_a=beta_c[single_t]*rho_c[single_t]+rho_y[single_t]*beta_c[single_t-1]+beta_c[single_t]*mu_y[single_t]*beta_c[single_t-1]
+      term_b=(rho_y[single_t]+beta_c[single_t]*mu_y[single_t])*rho_y[single_t-1]+term_a*mu_y[single_t-1]
+      result=beta_1[single_t]*tx[3]+
+        (beta_2[single_t]+beta_c[single_t]*mu_x[single_t]+(rho_y[single_t]+beta_c[single_t]*mu_y[single_t])*beta_1[single_t-1])*tx[2]+
+        ((rho_y[single_t]+beta_c[single_t]*mu_y[single_t])*beta_2[single_t-1]+term_a*mu_x[single_t-1]+term_b*beta_1[single_t-2])*tx[1]
       return(result) 
     }else{return(NA)}
   }else if(length(tx)==4){
-    if(t>3){
+    if(single_t>3){
       if(printFlag){cat("Compute 3-lag effect (treatment of length 4).")}
-      term_a=beta_c[t]*rho_c[t]+rho_y[t]*beta_c[t-1]+beta_c[t]*mu_y[t]*beta_c[t-1]
-      term_b=(rho_y[t]+beta_c[t]*mu_y[t])*rho_y[t-1]+term_a*mu_y[t-1]
-      result=beta_1[t]*tx[4]+
-        (beta_2[t]+beta_c[t]*mu_x[t]+(rho_y[t]+beta_c[t]*mu_y[t])*beta_1[t-1])*tx[3]+
-        ((rho_y[t]+beta_c[t]*mu_y[t])*beta_2[t-1]+term_a*mu_x[t-1]+term_b*beta_1[t-2])*tx[2]+
-        (term_b*beta_2[t-2]+term_a*rho_c[t-1]*mu_x[t-2]+term_b*beta_c[t-2]*mu_x[t-2]+(term_a*rho_c[t-1]+term_b*beta_c[t-2])*mu_y[t-2]*beta_1[t-3]+term_b*rho_y[t-2]*beta_1[t-3])*tx[1]
+      term_a=beta_c[single_t]*rho_c[single_t]+rho_y[single_t]*beta_c[single_t-1]+beta_c[single_t]*mu_y[single_t]*beta_c[single_t-1]
+      term_b=(rho_y[single_t]+beta_c[single_t]*mu_y[single_t])*rho_y[single_t-1]+term_a*mu_y[single_t-1]
+      result=beta_1[single_t]*tx[4]+
+        (beta_2[single_t]+beta_c[single_t]*mu_x[single_t]+(rho_y[single_t]+beta_c[single_t]*mu_y[single_t])*beta_1[single_t-1])*tx[3]+
+        ((rho_y[single_t]+beta_c[single_t]*mu_y[single_t])*beta_2[single_t-1]+term_a*mu_x[single_t-1]+term_b*beta_1[single_t-2])*tx[2]+
+        (term_b*beta_2[single_t-2]+term_a*rho_c[single_t-1]*mu_x[single_t-2]+term_b*beta_c[single_t-2]*mu_x[single_t-2]+(term_a*rho_c[single_t-1]+term_b*beta_c[single_t-2])*mu_y[single_t-2]*beta_1[single_t-3]+term_b*rho_y[single_t-2]*beta_1[single_t-3])*tx[1]
       return(result) 
     }else{return(NA)}
   }else if(length(tx)==5){
-    if(t>4){
+    if(single_t>4){
       if(printFlag){cat("Compute 4-lag effect (treatment of length 5).")}
-      term_a=beta_c[t]*rho_c[t]+rho_y[t]*beta_c[t-1]+beta_c[t]*mu_y[t]*beta_c[t-1]
-      term_b=(rho_y[t]+beta_c[t]*mu_y[t])*rho_y[t-1]+term_a*mu_y[t-1]
-      term_c=term_a*rho_c[t-1]+term_b*beta_c[t-2]
-      term_d=term_c*mu_y[t-2]+term_b*rho_y[t-2]
-      term_e=term_c*rho_c[t-2]+term_d*beta_c[t-2]
-      result=beta_1[t]*tx[5]+
-        (beta_2[t]+beta_c[t]*mu_x[t]+(rho_y[t]+beta_c[t]*mu_y[t])*beta_1[t-1])*tx[4]+
-        ((rho_y[t]+beta_c[t]*mu_y[t])*beta_2[t-1]+term_a*mu_x[t-1]+term_b*beta_1[t-2])*tx[3]+
-        (term_b*beta_2[t-2]+term_c*mu_x[t-2]+term_d*beta_1[t-3])*tx[2]+
-        (term_d*beta_2[t-3]+term_e*mu_x[t-3]+(term_e*mu_y[t-4]+term_d*rho_y[t-3])*beta_1[t-4])*tx[1]
+      term_a=beta_c[single_t]*rho_c[single_t]+rho_y[single_t]*beta_c[single_t-1]+beta_c[single_t]*mu_y[single_t]*beta_c[single_t-1]
+      term_b=(rho_y[single_t]+beta_c[single_t]*mu_y[single_t])*rho_y[single_t-1]+term_a*mu_y[single_t-1]
+      term_c=term_a*rho_c[single_t-1]+term_b*beta_c[single_t-2]
+      term_d=term_c*mu_y[single_t-2]+term_b*rho_y[single_t-2]
+      term_e=term_c*rho_c[single_t-2]+term_d*beta_c[single_t-2]
+      result=beta_1[single_t]*tx[5]+
+        (beta_2[single_t]+beta_c[single_t]*mu_x[single_t]+(rho_y[single_t]+beta_c[single_t]*mu_y[single_t])*beta_1[single_t-1])*tx[4]+
+        ((rho_y[single_t]+beta_c[single_t]*mu_y[single_t])*beta_2[single_t-1]+term_a*mu_x[single_t-1]+term_b*beta_1[single_t-2])*tx[3]+
+        (term_b*beta_2[single_t-2]+term_c*mu_x[single_t-2]+term_d*beta_1[single_t-3])*tx[2]+
+        (term_d*beta_2[single_t-3]+term_e*mu_x[single_t-3]+(term_e*mu_y[single_t-4]+term_d*rho_y[single_t-3])*beta_1[single_t-4])*tx[1]
       return(result)
     }else{return(NA)}
   }else{stop("This function temporarily takes tx of length from 1 to 5.")}
 }
 
-# change name from "calculate.effect_allt"
-# Updated on 11/03/2023
-calculate.effect_allt=function(tx,y_coeffi_table,c_coeffi_table,printFlag=T){
+# Updated on 11/03/2023:
+# Renamed function from "calculate.effect_allt" to "calculate.effect_allt"
+# Update on 07/23/2025:
+# Renamed function from "calculate.effect_allt" to calculate.causaleffect"
+# Note: this function now supports calculating effects for any arbitrary collection of time points, including a single time point or all time points.
+#       which covers the function calculate.causaleffect_singlet when t only has one time point
+#       which covers the function calculate.effect_allt_withCI when CI=T
+#       this function also inherets all checking-in on parameters from "calculate.causaleffect_singlet"
+calculate.causaleffect=function(t,tx,y_coeffi_table,c_coeffi_table,
+                                CI=F,n_sim=NA,y_coeffi_var_table=NA,c_coeffi_var_table=NA,
+                                printFlag=T){
   if(printFlag){
     cat(blue(" =================================================================================================== \n"))
     cat(blue("This function calculates contemporaneous effect and q-lag effects directly from mathematical expressions of coefficients.\n"))
     cat(blue("  Caution: it only applied for recent treatment up to length 5 (or 4 time points ago)\n"))
     cat(red ("  The formulat for outcome regression has to be: y_t = intercept + y_{t-1} + x_t + x_{t-1} + c_t\n"))
-    cat(red ("               for covariate regression has to be: c_t = intercept + c_{t-1} + x_{t-1} + c_{t-1}\n"))  
-    cat(blue("  Inputs include: a vector/scalar of recent tx=(...,x_{t-2},x_{t-1},x_t),\n"))
-    cat(blue("                  a table of outcome regression coefficients of all time,\n"))
-    cat(blue("                  a table of covariate regression coefficients of all time.\n"))
-    cat(blue("  Output is: estimate of a q-lag effect for all time t.\n"))
-    cat(blue(" =================================================================================================== \n"))
-  }
-  if(!all(is.data.frame(y_coeffi_table) & is.data.frame(c_coeffi_table))){stop("y_coeffi_table and c_coeffi_table should be data.frame.")}
-  if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Colum names for y_coeffi_table should be: (Intercept), y_1, x, x_1, c.")}
-  if(!all(c("(Intercept)","c_1","x_1","y_1")  %in% colnames(c_coeffi_table))){stop("Colum names for c_coeffi_table should be: (Intercept), c_1, x_1, y_1.")}
-
-  result=rep(NA,nrow(y_coeffi_table))
-  for(i in 1:nrow(y_coeffi_table)){
-    result[i]=calculate.effect_singlet(t=i,tx,y_coeffi_table,c_coeffi_table,printFlag=F)
-  }
-  return(result)
-}
-
-# Created on 11/03/2023
-# this function is created to replace previous "calculate.upto5_lag_effect_allt_withCI",
-#                                              "calculate.upto5_total_effect_allt_withCI",
-#                                              "calculate.general_effect0101_allt_withCI",
-#                                              "calculate.general_effect1001_allt_withCI".
-#   so that it calculate contemporanous effect,
-#                        lagged effect up to 4, tx=1, tx=c(1,0), tx=c(1,0,0), tx=c(1,0,0,0), tx=c(1,0,0,0,0);
-#                        total effect up to 4, tx=1, tx=c(1,1), tx=c(1,1,1), tx=c(1,1,1,1), tx=c(1,1,1,1,1);
-#                        general effect of 0101, tx=0, tx=c(0,1), tx=c(0,1,0), tx=c(0,1,0,1);
-#                        general effect of 1001, tx=1, tx=c(1,0), tx=c(1,0,0), tx=c(1,0,0,1);
-#   separately and more flexibly
-calculate.effect_allt_withCI=function(tx,y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,n_sim=5,printFlag=T){
-  if(printFlag){
-    cat(blue(" =================================================================================================== \n"))
-    cat(blue("This function calculates contemporaneous effect and q-lag effects as well as simulated distribution"))
-    cat(blue("  directly from mathematical expressions of coefficients.\n"))
-    cat(blue("  Caution: it only applied for recent treatment up to length 5 (or 4 time points ago)\n"))
-    cat(red ("  The formulat for outcome regression has to be: y_t = intercept + y_{t-1} + x_t + x_{t-1} + c_t\n"))
-    cat(red ("               for covariate regression has to be: c_t = intercept + c_{t-1} + x_{t-1} + c_{t-1}\n"))  
-    cat(blue("  Inputs include: [tx] a vector/scalar of recent tx, specified forward as (...,x_{t-2},x_{t-1},x_t)\n"))
+    cat(red ("               for covariate regression has to be: c_t = intercept + c_{t-1} + x_{t-1} + c_{t-1}\n")) 
+    cat(blue("  Inputs include: [t] a vector/scalar of time points,\n"))
+    cat(blue("                  [tx] a vector/scalar of recent tx=(...,x_{t-2},x_{t-1},x_t),\n"))
     cat(blue("                  [y_coeffi_table] a data.frame of outcome regression coefficients of all times\n"))
     cat(blue("                  [y_coeffi_var_table] a list of outcome regression coefficients Variance Matrix of all times,\n"))
     cat(blue("                  [c_coeffi_table] a data.frame of covariate regression coefficients of all times.\n"))
     cat(blue("                  [c_coeffi_var_table] a list of covariate regression coefficients Variance Matrix of all times,\n"))
+    cat(blue("                  [CI] a logical T/F to return estimate with CI or not,\n"))
     cat(blue("                  [n_sim] a number specifying the numbef of random draws.\n"))
     cat(blue("  Output is: estimate of a q-lag effect and its distribution for all time t.\n"))
-    cat(blue("             rows represent all time points and columns represent n_sim.\n"))
+    cat(blue("             when CI=F, return a vector of estimate of a q-lag effect for time point(s) t.\n"))
+    cat(blue("             when CI=T, return a matrix with rows representing all time points and columns representing n_sim.\n"))
     cat(blue(" =================================================================================================== \n"))
   }
+  if(!all(is.numeric(t) & t %% 1 == 0 & t>0 & t<=nrow(y_coeffi_table) & t<=nrow(c_coeffi_table))){stop("Chosen time point(s) to be a propriate positive integer between [1,T].")}
   if(!all(is.data.frame(y_coeffi_table) & is.data.frame(c_coeffi_table))){stop("y_coeffi_table and c_coeffi_table should be data.frame.")}
-  if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Colum names for y_coeffi_table should be: (Intercept), y_1, x, x_1, c.")}
-  if(!all(c("(Intercept)","c_1","x_1","y_1")  %in% colnames(c_coeffi_table))){stop("Colum names for c_coeffi_table should be: (Intercept), c_1, x_1, y_1.")}
-  
-  simulated_coeffi_y=list()
-  simulated_coeffi_c=list()
-  for(k in 1:nrow(y_coeffi_table)){
-    simulated_coeffi_y[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(y_coeffi_table[k,]),Sigma=y_coeffi_var_table[[k]]))
-    simulated_coeffi_c[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(c_coeffi_table[k,]),Sigma=c_coeffi_var_table[[k]]))
+  if(nrow(y_coeffi_table)!=nrow(c_coeffi_table)){stop("y_coeffi_table and c_coeffi_table should have the same number of rows.")}
+  if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Column names for y_coeffi_table should be: (Intercept), y_1, x, x_1, c.")}
+  if(!all(c("(Intercept)","c_1","x_1","y_1")  %in% colnames(c_coeffi_table))){stop("Column names for c_coeffi_table should be: (Intercept), c_1, x_1, y_1.")}
+  if(CI){
+    if(!all(is.numeric(n_sim) & n_sim %% 1 == 0 & n_sim>0)){stop("please provide n_sim as a positive number.")}
+    if(!all(is.list(y_coeffi_var_table) & is.list(c_coeffi_var_table))){stop("y_coeffi_var_table and c_coeffi_var_table should be list.")}
+    if(!all(length(y_coeffi_var_table)==length(c_coeffi_var_table) & 
+            length(y_coeffi_var_table)==nrow(y_coeffi_table) & 
+            length(c_coeffi_var_table)==nrow(c_coeffi_table))){stop("y_coeffi_var_table/y_coeffi_table and c_coeffi_var_table/c_coeffi_table should of the same length.")}
   }
   
-  result_nsim=matrix(NA,ncol=n_sim,nrow=nrow(y_coeffi_table))
-  for(i in 1:n_sim){
-    y_coeffi_table_temp=list.rbind(lapply(simulated_coeffi_y,function(x){x[i,]}))
-    colnames(y_coeffi_table_temp)=colnames(y_coeffi_table)
-    c_coeffi_table_temp=list.rbind(lapply(simulated_coeffi_c,function(x){x[i,]}))
-    colnames(c_coeffi_table_temp)=colnames(c_coeffi_table)
-    result_temp=calculate.effect_allt(tx,y_coeffi_table_temp,c_coeffi_table_temp,printFlag=F)
-    result_nsim[,i]=result_temp
+  if(!CI){
+    result=rep(NA,length(t))
+    for(i in 1:length(t)){
+      result[i]=calculate.causaleffect_singlet(single_t=t[i],tx,y_coeffi_table,c_coeffi_table,printFlag=F)
+    }
+    return(result)
+  }else{
+    simulated_coeffi_y=list()
+    simulated_coeffi_c=list()
+    for(k in 1:nrow(y_coeffi_table)){
+      simulated_coeffi_y[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(y_coeffi_table[k,]),Sigma=y_coeffi_var_table[[k]]))
+      simulated_coeffi_c[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(c_coeffi_table[k,]),Sigma=c_coeffi_var_table[[k]]))
+    }
+    
+    result_nsim=matrix(NA,ncol=n_sim,nrow=length(t))
+    for(i in 1:n_sim){
+      y_coeffi_table_temp=list.rbind(lapply(simulated_coeffi_y,function(x){x[i,]}))
+      colnames(y_coeffi_table_temp)=colnames(y_coeffi_table)
+      c_coeffi_table_temp=list.rbind(lapply(simulated_coeffi_c,function(x){x[i,]}))
+      colnames(c_coeffi_table_temp)=colnames(c_coeffi_table)
+      result_temp=rep(NA,length(t))
+      for(j in 1:length(t)){
+        result_temp[j]=calculate.causaleffect_singlet(single_t=t[j],tx,y_coeffi_table=y_coeffi_table_temp,c_coeffi_table=c_coeffi_table_temp,printFlag=F)
+      }
+      result_nsim[,i]=result_temp
+    }
+    return(result_nsim)
   }
-  return(result_nsim)
 }
 # Here listed the no longer used "calculate.upto5_lag_effect_allt_withCI",
 #                                "calculate.upto5_total_effect_allt_withCI",
 #                                "calculate.general_effect0101_allt_withCI",
 #                                "calculate.general_effect1001_allt_withCI".
+#                                "calculate.effect_allt_withCI"
 {
   # calculate.upto5_lag_effect_allt_withCI=function(y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,n_sim=5,printFlag=T){
   #   if(printFlag){
@@ -339,6 +334,61 @@ calculate.effect_allt_withCI=function(tx,y_coeffi_table,y_coeffi_var_table,c_coe
   #   }
   #   return(result_nsim)
   # }
+  #
+  # Created on 11/03/2023
+  # this function is created to replace previous "calculate.upto5_lag_effect_allt_withCI",
+  #                                              "calculate.upto5_total_effect_allt_withCI",
+  #                                              "calculate.general_effect0101_allt_withCI",
+  #                                              "calculate.general_effect1001_allt_withCI".
+  #   so that it calculate contemporanous effect,
+  #                        lagged effect up to 4, tx=1, tx=c(1,0), tx=c(1,0,0), tx=c(1,0,0,0), tx=c(1,0,0,0,0);
+  #                        total effect up to 4, tx=1, tx=c(1,1), tx=c(1,1,1), tx=c(1,1,1,1), tx=c(1,1,1,1,1);
+  #                        general effect of 0101, tx=0, tx=c(0,1), tx=c(0,1,0), tx=c(0,1,0,1);
+  #                        general effect of 1001, tx=1, tx=c(1,0), tx=c(1,0,0), tx=c(1,0,0,1);
+  #   separately and more flexibly
+  # Update on 07/23/2025:
+  # this function "calculate.effect_allt_withCI" has been retired, as "calculate.causaleffect" covers the part of CI
+  # calculate.effect_allt_withCI=function(tx,y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,n_sim=5,printFlag=T){
+  #   if(printFlag){
+  #     cat(blue(" =================================================================================================== \n"))
+  #     cat(blue("This function calculates contemporaneous effect and q-lag effects as well as simulated distribution"))
+  #     cat(blue("  directly from mathematical expressions of coefficients.\n"))
+  #     cat(blue("  Caution: it only applied for recent treatment up to length 5 (or 4 time points ago)\n"))
+  #     cat(red ("  The formulat for outcome regression has to be: y_t = intercept + y_{t-1} + x_t + x_{t-1} + c_t\n"))
+  #     cat(red ("               for covariate regression has to be: c_t = intercept + c_{t-1} + x_{t-1} + c_{t-1}\n"))  
+  #     cat(blue("  Inputs include: [tx] a vector/scalar of recent tx, specified forward as (...,x_{t-2},x_{t-1},x_t)\n"))
+  #     cat(blue("                  [y_coeffi_table] a data.frame of outcome regression coefficients of all times\n"))
+  #     cat(blue("                  [y_coeffi_var_table] a list of outcome regression coefficients Variance Matrix of all times,\n"))
+  #     cat(blue("                  [c_coeffi_table] a data.frame of covariate regression coefficients of all times.\n"))
+  #     cat(blue("                  [c_coeffi_var_table] a list of covariate regression coefficients Variance Matrix of all times,\n"))
+  #     cat(blue("                  [n_sim] a number specifying the numbef of random draws.\n"))
+  #     cat(blue("  Output is: estimate of a q-lag effect and its distribution for all time t.\n"))
+  #     cat(blue("             rows represent all time points and columns represent n_sim.\n"))
+  #     cat(blue(" =================================================================================================== \n"))
+  #   }
+  #   if(!all(is.data.frame(y_coeffi_table) & is.data.frame(c_coeffi_table))){stop("y_coeffi_table and c_coeffi_table should be data.frame.")}
+  #   if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Colum names for y_coeffi_table should be: (Intercept), y_1, x, x_1, c.")}
+  #   if(!all(c("(Intercept)","c_1","x_1","y_1")  %in% colnames(c_coeffi_table))){stop("Colum names for c_coeffi_table should be: (Intercept), c_1, x_1, y_1.")}
+  #   
+  #   simulated_coeffi_y=list()
+  #   simulated_coeffi_c=list()
+  #   for(k in 1:nrow(y_coeffi_table)){
+  #     simulated_coeffi_y[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(y_coeffi_table[k,]),Sigma=y_coeffi_var_table[[k]]))
+  #     simulated_coeffi_c[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(c_coeffi_table[k,]),Sigma=c_coeffi_var_table[[k]]))
+  #   }
+  #   
+  #   result_nsim=matrix(NA,ncol=n_sim,nrow=nrow(y_coeffi_table))
+  #   for(i in 1:n_sim){
+  #     y_coeffi_table_temp=list.rbind(lapply(simulated_coeffi_y,function(x){x[i,]}))
+  #     colnames(y_coeffi_table_temp)=colnames(y_coeffi_table)
+  #     c_coeffi_table_temp=list.rbind(lapply(simulated_coeffi_c,function(x){x[i,]}))
+  #     colnames(c_coeffi_table_temp)=colnames(c_coeffi_table)
+  #     result_temp=calculate.effect_allt(tx,y_coeffi_table_temp,c_coeffi_table_temp,printFlag=F)
+  #     result_nsim[,i]=result_temp
+  #   }
+  #   return(result_nsim)
+  # }
+  
 }
 
 # change name from "calculate.qlag_controlled_direct_effect_allt_withCI"
