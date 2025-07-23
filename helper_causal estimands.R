@@ -93,7 +93,7 @@ calculate.causaleffect_singlet=function(single_t,tx,y_coeffi_table,c_coeffi_tabl
 #       which covers the function calculate.effect_allt_withCI when CI=T
 #       this function also inherets all checking-in on parameters from "calculate.causaleffect_singlet"
 calculate.causaleffect=function(t,tx,y_coeffi_table,c_coeffi_table,
-                                CI=F,n_sim=NA,y_coeffi_var_table=NA,c_coeffi_var_table=NA,
+                                CI=F,n_sim=NA,y_coeffi_var_table=NA,c_coeffi_var_table=NA,seed=1,
                                 printFlag=T){
   if(printFlag){
     cat(blue(" =================================================================================================== \n"))
@@ -134,6 +134,7 @@ calculate.causaleffect=function(t,tx,y_coeffi_table,c_coeffi_table,
     }
     return(result)
   }else{
+    set.seed(seed)
     simulated_coeffi_y=list()
     simulated_coeffi_c=list()
     for(k in 1:nrow(y_coeffi_table)){
@@ -142,6 +143,7 @@ calculate.causaleffect=function(t,tx,y_coeffi_table,c_coeffi_table,
     }
     
     result_nsim=matrix(NA,ncol=n_sim,nrow=length(t))
+    rownames(result_nsim)=as.character(t)
     for(i in 1:n_sim){
       y_coeffi_table_temp=list.rbind(lapply(simulated_coeffi_y,function(x){x[i,]}))
       colnames(y_coeffi_table_temp)=colnames(y_coeffi_table)
