@@ -80,21 +80,32 @@ c_coeffi_table=as.data.frame(matrix(rep(result_c$coefficients[,1],sum(periods)),
 colnames(c_coeffi_table)=names(result_c$coefficients[,1])
 c_coeffi_var_table=lapply(1:sum(periods),function(i){vcov(result_c)})
 head(c_coeffi_table);head(c_coeffi_var_table)
-# Calculate the following causal estimands for t=10 (the choice of time point is irrelavant, as the coeffients are time-invariate)
-# Method 1: calculate time-invariant causal estimands (withoutCI) from analytical expressions
-one_time=10
-# Y(1) - Y(0)
-estimand1=calculate.counterfactual_outcome_singlet(t=one_time,tx=1,y_coeffi_table,c_coeffi_table)-calculate.counterfactual_outcome_singlet(t=one_time,tx=0,y_coeffi_table,c_coeffi_table);estimand1
-# Y(1,0) - Y(0,0)
-estimand2=calculate.counterfactual_outcome_singlet(t=one_time,tx=c(1,0),y_coeffi_table,c_coeffi_table)-calculate.counterfactual_outcome_singlet(t=one_time,tx=c(0,0),y_coeffi_table,c_coeffi_table);estimand2
-# Y(1,0,0) - Y(0,0,0)
-estimand3=calculate.counterfactual_outcome_singlet(t=one_time,tx=c(1,0,0),y_coeffi_table,c_coeffi_table)-calculate.counterfactual_outcome_singlet(t=one_time,tx=c(0,0,0),y_coeffi_table,c_coeffi_table);estimand3
-# Y(1,0,0,0) - Y(0,0,0,0)
-estimand4=calculate.counterfactual_outcome_singlet(t=one_time,tx=c(1,0,0,0),y_coeffi_table,c_coeffi_table)-calculate.counterfactual_outcome_singlet(t=one_time,tx=c(0,0,0,0),y_coeffi_table,c_coeffi_table);estimand4
-# Y(1,0,0,0,0) - Y(0,0,0,0,0)
-estimand5=calculate.counterfactual_outcome_singlet(t=one_time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table)-calculate.counterfactual_outcome_singlet(t=one_time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table);estimand5
+# Calculate time-invariant causal estimands for t=10
+# (the choice of time point is irrelevant, as the coeffients are time-invariate)
+# 
+# Method 1: calculate causal estimands (withoutCI) using analytical expressions
+# Note:
+# - Confidence intervals (CI) can also be computed if needed.
+# - The new unified function `calculate.causaleffect` replaces the older versions:
+#     `calculate.effect_singlet`, `calculate.effect_allt`, and `calculate.effect_allt_withCI`
+# - This new version provides identical results but with improved flexibility,
+#   allowing estimation at arbitrary time point(s), with or without CI, in a single function.
+time=10
+# Y(1) - Y(0): -1.970228
+estimand1=calculate.causaleffect(t=time,tx=1,y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=time,tx=0,y_coeffi_table,c_coeffi_table);estimand1
+# estimand1=calculate.causaleffect(t=time,tx=1,y_coeffi_table,c_coeffi_table,CI=T,n_sim=10,y_coeffi_var_table,c_coeffi_var_table,seed=1)-
+#           calculate.causaleffect(t=time,tx=0,y_coeffi_table,c_coeffi_table,CI=T,n_sim=10,y_coeffi_var_table,c_coeffi_var_table,seed=1);estimand1
+# Y(1,0) - Y(0,0): -3.423824
+estimand2=calculate.causaleffect(t=time,tx=c(1,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=time,tx=c(0,0),y_coeffi_table,c_coeffi_table);estimand2
+# Y(1,0,0) - Y(0,0,0): -2.687571
+estimand3=calculate.causaleffect(t=time,tx=c(1,0,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=time,tx=c(0,0,0),y_coeffi_table,c_coeffi_table);estimand3
+# Y(1,0,0,0) - Y(0,0,0,0): -2.085623
+estimand4=calculate.causaleffect(t=time,tx=c(1,0,0,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=time,tx=c(0,0,0,0),y_coeffi_table,c_coeffi_table);estimand4
+# Y(1,0,0,0,0) - Y(0,0,0,0,0): -1.615715
+estimand5=calculate.causaleffect(t=time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table);estimand5
 plot(0:4,c(estimand1,estimand2,estimand3,estimand4,estimand5),type="l",ylim=c(-4,0),xlab="# lags",ylab="causal estimands")
 abline(h=0,col="red")
+
 # Method 2: from simulated version
 estimand_1to5=simulate.counterfactual_outcome_singlet(t=one_time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data)-
   simulate.counterfactual_outcome_singlet(t=one_time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data)
