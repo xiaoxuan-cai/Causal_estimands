@@ -69,9 +69,6 @@ result_c=summary(lm(c~c_1+x_1+y_1,data=data[-c(1),]));result_c
 #   x_1          0.97918    0.03555  27.541  < 2e-16 ***
 #   y_1         -0.20456    0.01399 -14.622  < 2e-16 ***
 
-## ------------------------------------------- ##
-## potential outcome analysis  ##
-## ------------------------------------------- ##
 y_coeffi_table=as.data.frame(matrix(rep(result_y$coefficients[,1],sum(periods)),nrow=sum(periods),byrow=T))
 colnames(y_coeffi_table)=names(result_y$coefficients[,1])
 y_coeffi_var_table=lapply(1:sum(periods),function(i){vcov(result_y)})
@@ -80,8 +77,9 @@ c_coeffi_table=as.data.frame(matrix(rep(result_c$coefficients[,1],sum(periods)),
 colnames(c_coeffi_table)=names(result_c$coefficients[,1])
 c_coeffi_var_table=lapply(1:sum(periods),function(i){vcov(result_c)})
 head(c_coeffi_table);head(c_coeffi_var_table)
+
 # Calculate time-invariant causal estimands for t=10
-# (the choice of time point is irrelevant, as the coeffients are time-invariate)
+# (the choice of time point is irrelevant, as the coefficients are time-invariate)
 # 
 # Method 1: calculate causal estimands (withoutCI) using analytical expressions
 # Note:
@@ -107,19 +105,15 @@ plot(0:4,c(estimand1,estimand2,estimand3,estimand4,estimand5),type="l",ylim=c(-4
 abline(h=0,col="red")
 
 # Method 2: from simulated version
-estimand_1to5=simulate.counterfactual_outcome_singlet(t=one_time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data)-
-  simulate.counterfactual_outcome_singlet(t=one_time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data)
+one_time=10
+estimand_1to5=simulate.counterfactual_path_singlet(t=one_time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data[,c(1:4)])-
+  simulate.counterfactual_path_singlet(t=one_time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data[,c(1:4)])
 estimand_1to5 # the same as c(estimand1,estimand2,estimand3,estimand4,estimand5)
-n_sim=100
-set.seed(1)
-estimand_1to5_withCI_part1=simulate.counterfactual_outcome_singlet_withCI(t=one_time,tx=c(1,0,0,0,0),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
-set.seed(1)
-estimand_1to5_withCI_part2=simulate.counterfactual_outcome_singlet_withCI(t=one_time,tx=c(0,0,0,0,0),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
-boxplot(estimand_1to5_withCI_part1-estimand_1to5_withCI_part2)
+estimand_1to5_withCI=simulate.counterfactual_path_singlet(t=one_time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data[,c(1:4)],CI=T,n_sim=100,y_coeffi_var_table,c_coeffi_var_table,seed=1)-
+  simulate.counterfactual_path_singlet(t=one_time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data[,c(1:4)],CI=T,n_sim=100,y_coeffi_var_table,c_coeffi_var_table,seed=1)
+boxplot(estimand_1to5_withCI)
 points(estimand_1to5,col="blue",pch=16,type="l",lty=3)
-# Method 3: from posterior of coeffis
-result_alltimepoints_analytical=calculate.upto5_lag_effect_allt_withCI(y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,n_sim=100,printFlag=T)
-result_alltimepoints_analytical_qstep=calculate.upto5_total_effect_allt_withCI(y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,n_sim=100,printFlag=T)
+
 # plots effects with CI for contemporaneous effect and q-lag effects for q=1,2,3,4 for all time points
 {
   contemporenous_analytical=list.cbind(lapply(result_alltimepoints_analytical,function(x){x[,1]}))
