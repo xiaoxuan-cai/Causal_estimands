@@ -114,59 +114,61 @@ estimand_1to5_withCI=simulate.counterfactual_path_singlet(t=one_time,tx=c(1,0,0,
 boxplot(estimand_1to5_withCI)
 points(estimand_1to5,col="blue",pch=16,type="l",lty=3)
 
+
 # plots effects with CI for contemporaneous effect and q-lag effects for q=1,2,3,4 for all time points
+qlag_result_alltimepoints=lapply(1:nrow(data),function(ts){simulate.counterfactual_path_singlet(t=ts,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data[,c(1:4)],CI=T,n_sim=10,y_coeffi_var_table,c_coeffi_var_table,seed=1,printFlag=F)-
+    simulate.counterfactual_path_singlet(t=ts,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data[,c(1:4)],CI=T,n_sim=10,y_coeffi_var_table,c_coeffi_var_table,seed=1,printFlag=F)})
 {
-  contemporenous_analytical=list.cbind(lapply(result_alltimepoints_analytical,function(x){x[,1]}))
-  CIband_analytical=plot_simulatedCI(t(contemporenous_analytical),probs=c(0.05,0.95),printFlag=F)
+  contemporenous=list.rbind(lapply(result_alltimepoints,function(x){x[,1]}))
+  CIband=plot_simulatedCI(contemporenous,probs=c(0.05,0.95),printFlag=T,ylim=c(-2.1,-1.8))
   par(mar = c(2.5, 5, .5, .5))
-  plot(1:1000,CIband_analytical$mean,type="l",ylab="contemporaneous effect",xlab="",bty="n",cex.axis=2,cex.lab=2,ylim=c(-4,0.3))
-  polygon(c(1:1000,rev(1:1000)),c(CIband_analytical$upper,rev(CIband_analytical$lower)),col="grey90",border="grey")
-  points(1:1000,CIband_analytical$mean,type="l")
+  plot(1:1000,CIband$mean,type="l",ylab="contemporaneous effect",xlab="",bty="n",cex.axis=2,cex.lab=2,ylim=c(-4,0.3))
+  polygon(c(1:1000,rev(1:1000)),c(CIband$upper,rev(CIband$lower)),col="grey90",border="grey")
+  points(1:1000,CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
   
-  lag1_analytical=list.cbind(lapply(result_alltimepoints_analytical,function(x){x[,2]}))
-  lag1_CIband_analytical=plot_simulatedCI(t(lag1_analytical),probs=c(0.05,0.95),printFlag=F)
-  plot(1:1000,lag1_CIband_analytical$mean,type="l",ylab="1-lag effect",xlab="Date",bty="n",cex.axis=2,cex.lab=2,ylim=c(-4,0.3))
-  polygon(c(1:1000,rev(1:1000)),c(lag1_CIband_analytical$upper,rev(lag1_CIband_analytical$lower)),col="grey90",border="grey")
-  points(1:1000,lag1_CIband_analytical$mean,type="l")
+  lag1=list.rbind(lapply(result_alltimepoints,function(x){x[,2]}))
+  lag1_CIband=plot_simulatedCI(lag1,probs=c(0.05,0.95),printFlag=F)
+  plot(1:1000,lag1_CIband$mean,type="l",ylab="1-lag effect",xlab="Date",bty="n",cex.axis=2,cex.lab=2,ylim=c(-4,0.3))
+  polygon(c(1:1000,rev(1:1000)),c(lag1_CIband$upper,rev(lag1_CIband$lower)),col="grey90",border="grey")
+  points(1:1000,lag1_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
   
-  lag2_analytical=list.cbind(lapply(result_alltimepoints_analytical,function(x){x[,3]}))
-  lag2_CIband_analytical=plot_simulatedCI(t(lag2_analytical),probs=c(0.05,0.95),printFlag=F)
-  plot(1:1000,lag2_CIband_analytical$mean,type="l",ylab="2-lag effect",xlab="Date",bty="n",cex.axis=2,cex.lab=2,ylim=c(-4,0.3))
-  polygon(c(1:1000,rev(1:1000)),c(lag2_CIband_analytical$upper,rev(lag2_CIband_analytical$lower)),col="grey90",border="grey")
-  points(1:1000,lag2_CIband_analytical$mean,type="l")
+  lag2=list.rbind(lapply(result_alltimepoints,function(x){x[,3]}))
+  lag2_CIband=plot_simulatedCI(t(lag2),probs=c(0.05,0.95),printFlag=F)
+  plot(1:1000,lag2_CIband$mean,type="l",ylab="2-lag effect",xlab="Date",bty="n",cex.axis=2,cex.lab=2,ylim=c(-4,0.3))
+  polygon(c(1:1000,rev(1:1000)),c(lag2_CIband$upper,rev(lag2_CIband$lower)),col="grey90",border="grey")
+  points(1:1000,lag2_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
   
-  lag3_analytical=list.cbind(lapply(result_alltimepoints_analytical,function(x){x[,4]}))
-  lag3_CIband_analytical=plot_simulatedCI(t(lag3_analytical),probs=c(0.05,0.95),printFlag=F)
-  plot(1:1000,lag3_CIband_analytical$mean,type="l",ylab="3-lag effect (texts)",xlab="Date",bty="n",cex.axis=2,cex.lab=2,ylim=c(-3,0.3))
-  polygon(c(1:1000,rev(1:1000)),c(lag3_CIband_analytical$upper,rev(lag3_CIband_analytical$lower)),col="grey90",border="grey")
-  points(1:1000,lag3_CIband_analytical$mean,type="l")
+  lag3=list.rbind(lapply(result_alltimepoints,function(x){x[,4]}))
+  lag3_CIband=plot_simulatedCI(lag3,probs=c(0.05,0.95),printFlag=F)
+  plot(1:1000,lag3_CIband$mean,type="l",ylab="3-lag effect (texts)",xlab="Date",bty="n",cex.axis=2,cex.lab=2,ylim=c(-3,0.3))
+  polygon(c(1:1000,rev(1:1000)),c(lag3_CIband$upper,rev(lag3_CIband$lower)),col="grey90",border="grey")
+  points(1:1000,lag3_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
   
-  lag4_analytical=list.cbind(lapply(result_alltimepoints_analytical,function(x){x[,5]}))
-  lag4_CIband_analytical=plot_simulatedCI(t(lag4_analytical),probs=c(0.05,0.95),printFlag=F)
-  plot(data$Date,lag4_CIband_analytical$mean,type="l",ylab="4-lag effect (texts)",xlab="Date",bty="n",xaxt="n",cex.axis=2,cex.lab=2,ylim=c(-3,0.3))
-  axis(side=1,at=xlabs,labels=as.character(xlabs),cex.axis=1.5)
-  polygon(c(data$Date,rev(data$Date)),c(lag4_CIband_analytical$upper,rev(lag4_CIband_analytical$lower)),col="grey90",border="grey")
-  points(data$Date,lag4_CIband_analytical$mean,type="l")
+  lag4=list.rbind(lapply(result_alltimepoints,function(x){x[,5]}))
+  lag4_CIband=plot_simulatedCI(lag4,probs=c(0.05,0.95),printFlag=F)
+  plot(1:1000,lag4_CIband$mean,type="l",ylab="4-lag effect (texts)",xlab="Date",bty="n",cex.axis=2,cex.lab=2,ylim=c(-3,0.3))
+  polygon(c(1:1000,rev(1:1000)),c(lag4_CIband$upper,rev(lag4_CIband$lower)),col="grey90",border="grey")
+  points(1:1000,lag4_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
@@ -267,6 +269,15 @@ legend("bottomright",legend=c("tx=(1,1,1,0,0,0,0)","tx=(0,1,0,1,0,1,0)","tx=(1,0
        pch = c(15,16,17), lty=c(1,2,4), col=c("black","brown","blue"),
        bty = "n", # remove the bounder of the legend
        lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+
+
+
+
+
+
+
+
+
 
 
 ## ------------------------------------------- ##
