@@ -609,10 +609,10 @@ plot_simulatedCI=function(simulated_dist,probs=c(0.05,0.95),printFlag=T,ylim=c(0
     cat(blue("                  [probs] lower and upper bound quantiles.\n"))
     cat(blue(" =================================================================================================== \n"))
   }
-  result=as.data.frame(matrix(NA,ncol=3,nrow=ncol(simulated_dist)))
+  result=as.data.frame(matrix(NA,ncol=3,nrow=nrow(simulated_dist)))
   colnames(result)=c("lower","upper","mean")
-  for(j in 1:ncol(simulated_dist)){
-    result[j,]=c(quantile(simulated_dist[,j],probs,na.rm = T),mean(simulated_dist[,j]))
+  for(j in 1:nrow(simulated_dist)){
+    result[j,]=c(quantile(simulated_dist[j,],probs,na.rm = T),mean(simulated_dist[j,]))
   }
   if(printFlag==T){
     plot(0:(nrow(result)-1),result$mean,type="l",lty=3,ylim=ylim)
