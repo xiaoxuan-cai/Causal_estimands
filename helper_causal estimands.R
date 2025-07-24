@@ -2,7 +2,9 @@
 
 # ===================== mathematical derivation version ===================== #
 # "calculate.causaleffect" adopt all from calculate."causaleffect_singlet" and "calculate.effect_allt_withCI"
-#  which calculate causal effects for 1/multiple/all timepoints with/without CI
+#  which calculate causal effects at time t for 1/multiple/all timepoints with/without CI
+#  tx is a binary vector/scalar, specified forward as (...,x_{t-2},x_{t-1},x_t)
+
 
 # Updated on 11/03/2023:
 # Renamed function from "calculate.counterfactual_outcome_singlet" to "calculate.effect_allt"
@@ -158,12 +160,13 @@ calculate.causaleffect=function(t,tx,y_coeffi_table,c_coeffi_table,
     return(result_nsim)
   }
 }
-# Here listed the no longer used "calculate.upto5_lag_effect_allt_withCI",
-#                                "calculate.upto5_total_effect_allt_withCI",
-#                                "calculate.general_effect0101_allt_withCI",
-#                                "calculate.general_effect1001_allt_withCI".
-#                                "calculate.effect_allt_withCI"
+# Here listed the no longer used
 {
+  # Here listed the no longer used "calculate.upto5_lag_effect_allt_withCI",
+  #                                "calculate.upto5_total_effect_allt_withCI",
+  #                                "calculate.general_effect0101_allt_withCI",
+  #                                "calculate.general_effect1001_allt_withCI".
+  #                                "calculate.effect_allt_withCI"
   # calculate.upto5_lag_effect_allt_withCI=function(y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,n_sim=5,printFlag=T){
   #   if(printFlag){
   #     cat(blue(" =================================================================================================== \n"))
@@ -448,10 +451,17 @@ calculate.controlled_direct_effect=function(t,y_coeffi_table,
 }
 
 # ========================== simulation version ============================ #
+# "simulate.counterfactual_path_singlet" adopt all from "simulate.counterfactual_path_singlet_withoutCI"
+#  which simulate a path of counterfactual outcomes of the same length as tx with/without CI
+#  the simulated path starts from t-length(tx)+1 and ends at t
 # tx is a binary vector/scalar, specified forward as (...,x_{t-2},x_{t-1},x_t)
-# change name from "simulate.counterfactual_outcome_singlet"
-# Updated on 11/03/2023
-simulate.counterfactual_singlet=function(t,tx,y_coeffi_table,c_coeffi_table,raw_data,printFlag=T){
+
+# Updated on 07/24/2025:
+# Renamed function from "simulate.counterfactual_outcome_singlet" to "simulate.counterfactual_path_singlet_withoutCI"
+# Note: from now on, this function ( "simulate.counterfactual_path_singlet_withoutCI") is no longer used independently, 
+#       as its functionality has been fully incorporated into the main function "simulate.counterfactual_path_singlet"
+#       since this function no longer used independently, all checking-in on parameters are removed
+simulate.counterfactual_path_singlet_withoutCI=function(t,tx,y_coeffi_table,c_coeffi_table,raw_data,printFlag=T){
   if(printFlag){
     cat(blue(" =================================================================================================== \n"))
     cat(blue("This function simulates DGP to obtain potential outcomes at time t.\n"))
@@ -462,16 +472,9 @@ simulate.counterfactual_singlet=function(t,tx,y_coeffi_table,c_coeffi_table,raw_
     cat(blue("                   [y_coeffi_table] a data.frame of outcome regression coefficients of all times,\n"))
     cat(blue("                   [c_coeffi_table] a data.frame of covariate regression coefficients of all times.\n"))
     cat(blue("                   [raw_data] a data.frame of raw data of (y,x,c).\n"))
-    cat(blue("  Output is: entire sequence of simulated t from starting t to current t.\n"))
+    cat(blue("  Output is: entire sequence of simulated t from starting t (t-length(tx)+1) to current t.\n"))
     cat(blue(" =================================================================================================== \n"))
   }
-  if(!all(is.numeric(t) & t %% 1 == 0 & t>0 & t<=nrow(y_coeffi_table) & t<=nrow(c_coeffi_table))){stop("Chosen t a propriate positive integer between [1,T].")}
-  if(!all(is.data.frame(y_coeffi_table) & is.data.frame(c_coeffi_table))){stop("y_coeffi_table and c_coeffi_table should be data.frame.")}
-  if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Column names for y_coeffi_table should contain: (Intercept), y_1, x, x_1, c.")}
-  if(!all(c("(Intercept)","c_1","x_1","y_1") %in% colnames(c_coeffi_table))){stop("Column names for c_coeffi_table should contain: (Intercept), c_1, x_1, y_1.")}
-  if(!is.data.frame(raw_data)){stop("raw_data should be data.frame.")}
-  if(!all(c("Date","y","x","c") %in% colnames(raw_data))){stop("Colume names for raw_data should be: Date, y, x, c.")}
-  
   # --------------- generate data --------------- #
   periods = length(tx)
   start_t=t-length(tx)+1
@@ -521,10 +524,14 @@ simulate.counterfactual_singlet=function(t,tx,y_coeffi_table,c_coeffi_table,raw_
                                         n=sum(periods)) 
   return(simulated_result$y)
 }
-# change name from "simulate.counterfactual_outcome_singlet_withCI"
+
 # Updated on 11/03/2023
-simulate.counterfactual_singlet_withCI=function(t,tx,y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,
-                                                raw_data,n_sim=5,printFlag=T){
+# Renamed function from "simulate.counterfactual_outcome_singlet_withCI" to "simulate.counterfactual_singlet_withCI"
+# Updated on 07/24/2025:
+# Renamed function from "simulate.counterfactual_singlet_withCI" to "simulate.counterfactual_path_singlet"
+simulate.counterfactual_path_singlet=function(t,tx,y_coeffi_table,c_coeffi_table,raw_data,
+                                              CI=F,n_sim=NA,y_coeffi_var_table=NA,c_coeffi_var_table=NA,seed=1,
+                                              printFlag=T){
   if(printFlag){
     cat(blue(" =================================================================================================== \n"))
     cat(blue("This function simulates DGP to obtain potential outcomes  at time t as well as its distribution .\n"))
@@ -544,33 +551,47 @@ simulate.counterfactual_singlet_withCI=function(t,tx,y_coeffi_table,y_coeffi_var
   }
   if(!all(is.numeric(t) & t %% 1 == 0 & t>=0 & t<=nrow(y_coeffi_table) & t<=nrow(c_coeffi_table))){stop("Chosen t a propriate positive integer between [1,T].")}
   if(!all(is.data.frame(y_coeffi_table) & is.data.frame(c_coeffi_table))){stop("y_coeffi_table and c_coeffi_table should be data.frame.")}
+  if(nrow(y_coeffi_table)!=nrow(c_coeffi_table)){stop("y_coeffi_table and c_coeffi_table should have the same number of rows.")}
   if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Colume names for y_coeffi_table should contain: (Intercept), y_1, x, x_1, c.")}
   if(!all(c("(Intercept)","c_1","x_1","y_1") %in% colnames(c_coeffi_table))){stop("Colume names for c_coeffi_table should contain: (Intercept), c_1, x_1, y_1.")}
   if(!is.data.frame(raw_data)){stop("raw_data should be data.frame.")}
   if(!all(c("Date","y","x","c") %in% colnames(raw_data))){stop("Colume names for raw_data should be: Date, y, x, c.")}
-  start_t=t-length(tx)+1
-  if(start_t<1){stop("The time has been backward beyond 0.")}
-
-  # sample n_sim copies of coefficient tables for each time from start_t to t
-  simulated_coeffi_y=list()
-  simulated_coeffi_c=list()
-  for(k in start_t:t){
-    simulated_coeffi_y[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(y_coeffi_table[k,]),Sigma=y_coeffi_var_table[[k]]))
-    simulated_coeffi_c[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(c_coeffi_table[k,]),Sigma=c_coeffi_var_table[[k]]))
+  if(CI){
+    if(!all(is.numeric(n_sim) & n_sim %% 1 == 0 & n_sim>0)){stop("please provide n_sim as a positive number.")}
+    if(!all(is.list(y_coeffi_var_table) & is.list(c_coeffi_var_table))){stop("y_coeffi_var_table and c_coeffi_var_table should be list.")}
+    if(!all(length(y_coeffi_var_table)==length(c_coeffi_var_table) & 
+            length(y_coeffi_var_table)==nrow(y_coeffi_table) & 
+            length(c_coeffi_var_table)==nrow(c_coeffi_table))){stop("y_coeffi_var_table/y_coeffi_table and c_coeffi_var_table/c_coeffi_table should of the same length.")}
   }
   
-  result=matrix(NA,nrow=n_sim,ncol=length(tx))
-  for(i in 1:n_sim){
-    y_coeffi_table_temp=as.data.frame(matrix(NA,nrow=nrow(y_coeffi_table),ncol=ncol(y_coeffi_table))) # empty data frame meeting the requirement of "simulate.counterfactual_singlet"
-    y_coeffi_table_temp[start_t:t,]=as.matrix(rbindlist(lapply(simulated_coeffi_y[start_t:t],function(x){x[i,]}))) # update the relevant proportion
-    colnames(y_coeffi_table_temp)=colnames(y_coeffi_table) # give column names as required by "simulate.counterfactual_singlet"
-    c_coeffi_table_temp=as.data.frame(matrix(NA,nrow=nrow(c_coeffi_table),ncol=ncol(c_coeffi_table))) # empty data frame meeting the requirement of "simulate.counterfactual_singlet"
-    c_coeffi_table_temp[start_t:t,]=as.matrix(rbindlist(lapply(simulated_coeffi_c[start_t:t],function(x){x[i,]})))  # update the relevant proportion
-    colnames(c_coeffi_table_temp)=colnames(c_coeffi_table) # give column names as required by "simulate.counterfactual_singlet"
-    result[i,]=simulate.counterfactual_singlet(t,tx,y_coeffi_table = y_coeffi_table_temp,c_coeffi_table = c_coeffi_table_temp,
-                                               raw_data,printFlag=F)
+  start_t=t-length(tx)+1
+  if(start_t<1){stop("The time has been backward beyond 0.")}
+  
+  if(!CI){
+    result=simulate.counterfactual_path_singlet_withoutCI(t,tx,y_coeffi_table,c_coeffi_table,raw_data,printFlag=F)
+    return(result)
+  }else{
+    set.seed(seed)
+    # sample n_sim copies of coefficient tables for each time from start_t to t
+    simulated_coeffi_y=list()
+    simulated_coeffi_c=list()
+    for(k in start_t:t){
+      simulated_coeffi_y[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(y_coeffi_table[k,]),Sigma=y_coeffi_var_table[[k]]))
+      simulated_coeffi_c[[k]]=as.data.frame(mvrnorm(n=n_sim,mu=as.numeric(c_coeffi_table[k,]),Sigma=c_coeffi_var_table[[k]]))
+    }
+    result=matrix(NA,nrow=n_sim,ncol=length(tx))
+    for(i in 1:n_sim){
+      y_coeffi_table_temp=as.data.frame(matrix(NA,nrow=nrow(y_coeffi_table),ncol=ncol(y_coeffi_table))) # empty data frame meeting the requirement of "simulate.counterfactual_singlet"
+      y_coeffi_table_temp[start_t:t,]=as.matrix(rbindlist(lapply(simulated_coeffi_y[start_t:t],function(x){x[i,]}))) # update the relevant proportion
+      colnames(y_coeffi_table_temp)=colnames(y_coeffi_table) # give column names as required by "simulate.counterfactual_singlet"
+      c_coeffi_table_temp=as.data.frame(matrix(NA,nrow=nrow(c_coeffi_table),ncol=ncol(c_coeffi_table))) # empty data frame meeting the requirement of "simulate.counterfactual_singlet"
+      c_coeffi_table_temp[start_t:t,]=as.matrix(rbindlist(lapply(simulated_coeffi_c[start_t:t],function(x){x[i,]})))  # update the relevant proportion
+      colnames(c_coeffi_table_temp)=colnames(c_coeffi_table) # give column names as required by "simulate.counterfactual_singlet"
+      result[i,]=simulate.counterfactual_path_singlet_withoutCI(t,tx,y_coeffi_table = y_coeffi_table_temp,c_coeffi_table = c_coeffi_table_temp,
+                                                 raw_data,printFlag=F)
+    }
+    return(result)
   }
-  return(result)
 }
 # plot the results from function "simulate.counterfactual_singlet_withCI"
 plot_simulatedCI=function(simulated_dist,probs=c(0.05,0.95),printFlag=T,ylim=c(0,2)){
