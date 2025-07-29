@@ -1,10 +1,24 @@
 # File: 20250708_causal_estimand_simulation_non.R
 # Date: 2025.07.08
-source("/home/cai.1083/paper_causal_estimand_simu/Summary 1_packages.R")
+library(MASS) 
+library(crayon) # for cat colors, OSU
+library(lubridate) # for dates, OSU
+library(mice) # for multiple imputation, OSU
+library(forecast) # for most the time series functions: auto.arima, OSU
+library(changepoint) # for finding change points, OSU
+library(dlm) # for statespace model, OSU
+# source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 2_helper functions.R")
+# source("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/helper_causal estimands.R")
+# source("/Users/xiaoxuancai/Documents/GitHub/SSMimpute2/helper_SSM_version3.R")
+# source("/Users/xiaoxuancai/Documents/GitHub/SSMimpute2/helper_other.R")
 source("/home/cai.1083/paper_causal_estimand_simu/Summary 2_helper functions.R")
 source("/home/cai.1083/paper_causal_estimand_simu/helper_causal estimands.R")
 source("/home/cai.1083/paper_causal_estimand_simu/helper_SSM_version3.R")
 source("/home/cai.1083/paper_causal_estimand_simu/helper_other.R")
+
+n_seed=500
+contemporaneous=lag1=lag2=lag3=lag4=lag1_direct=total1=matrix(NA,nrow=1000,ncol=n_seed)
+estimand_1to7=matrix(NA,nrow=7,ncol=n_seed)
 
 for(seed in 1:n_seed){
   cat(seed,"\n")
