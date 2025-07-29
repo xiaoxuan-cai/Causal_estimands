@@ -6,8 +6,7 @@ source("/home/cai.1083/paper_causal_estimand_simu/helper_causal estimands.R")
 source("/home/cai.1083/paper_causal_estimand_simu/helper_SSM_version3.R")
 source("/home/cai.1083/paper_causal_estimand_simu/helper_other.R")
 
-contemporaneous=lag1=lag2=lag3=lag4=lag1_direct=total1=estimand_1to7=list()
-for(seed in 1:500){
+for(seed in 1:n_seed){
   cat(seed,"\n")
   # ------------------------------#
   #       Simulation Data         #
@@ -22,8 +21,8 @@ for(seed in 1:500){
   # parameters for c
   parameters_for_c=list(baseline=extend(10,periods),
                         c=extend(0.3,periods),
-                        y=extend(-0.2,periods),
                         x=extend(c(1,0.5,1),periods),
+                        y=extend(-0.2,periods),
                         sd=extend(sqrt(1),periods))
   model_for_c=c("baseline","c","x","y")
   # parameters for x
@@ -51,19 +50,17 @@ for(seed in 1:500){
                                   given.x=F,input.x=NULL,parameters_for_x=parameters_for_x,model_for_x=model_for_x,initial.x=NULL,type_for_x="continuous",
                                   given.y=F,input.y=NULL,parameters_for_y=parameters_for_y,model_for_y=model_for_y,initial.y=NULL,
                                   lag_y_on_y=lag_y_on_y,lag_x_on_y=lag_x_on_y,lag_c_on_y=lag_c_on_y,interaction_pairs=NULL,
-                                  n=sum(periods),printFlag=T)
+                                  n=sum(periods),printFlag=F)
   data=data.frame(Date=Sys.Date()-days(length(simulation$y):1),y=simulation$y,x=simulation$x,c=simulation$c,simulation$noise_y)
-  data=data[-c(1:99),]
-  # plot(simulation$c);plot(simulation$x);plot(simulation$y);plot(simulation$noise_y)
-  param=list(list(lagged_param=list(variables=c("y","x","c"),param=rep(7,3))))
+  param=list(list(lagged_param=list(variables=c("y","x","c"),param=rep(1,3))))
   data=add_variables_procedures(data,param)
-  # head(data)
+  data=data[-c(1:100),]
   
   # ------------------------------#
   #         Fit SSM model         #
   # ------------------------------#
   # fit state space model for y
-  data_ss_y=data[-1,c("Date","y","y_1","x","x_1","c")]
+  data_ss_y=data[,c("Date","y","y_1","x","x_1","c")]
   formula_y="y~y_1+x+x_1+c"
   ss_param_y=list(inits=c(log(0.1),log(0.01)),m0=c(40,0.5,-2.5,-2,-1),C0=diag(rep(10^3),5),
                   AR1_coeffi=NULL,rw_coeffi="intercept",v_cp_param=NULL,
@@ -73,14 +70,14 @@ for(seed in 1:500){
                        cpt_merge_option = "unanimous",
                        dlm_option="smooth",
                        dlm_cpt_learning_option="smooth",bandwidth=20, cpt_V=1, printFlag=F)
-  SSM_y_result$out_filter$mod$W # 0.008968661, true = 0.01
-  SSM_y_result$out_filter$mod$V # 0.1075574, true = 0.1
+  # SSM_y_result$out_filter$mod$W # true = 0.01
+  # SSM_y_result$out_filter$mod$V # true = 0.1
   outF_y=SSM_y_result$out_filter
   outS_y=SSM_y_result$out_smooth
   
   # fit state space model for c
-  data_ss_c=data[-1,c("c","c_1","x_1","y_1")]
-  formula_c="c~c_1+y_1+x_1"
+  data_ss_c=data[,c("c","c_1","x_1","y_1")]
+  formula_c="c~c_1+x_1+y_1"
   ss_param_c=list(inits=c(log(1)),m0=c(10,0.3,-0.2,1),C0=diag(rep(10^3),4),
                   AR1_coeffi=NULL,rw_coeffi=NULL,v_cp_param=NULL,
                   w_cp_param=list(list(variable="x_1",segments=3,changepoints=c(400,700),fixed_cpts=F)))
@@ -89,14 +86,14 @@ for(seed in 1:500){
                        cpt_merge_option = "unanimous",
                        dlm_option="smooth",
                        dlm_cpt_learning_option="smooth",bandwidth=20, cpt_V=5, printFlag=F)
-  SSM_c_result$out_filter$mod$V # 0.9755066, true = 1
+  # SSM_c_result$out_filter$mod$V # true = 1
   outF_c=SSM_c_result$out_filter
   outS_c=SSM_c_result$out_smooth
   
   y_coeffi_table=as.data.frame(outS_y$s[-1,]);colnames(y_coeffi_table)=c("(Intercept)","y_1","x","x_1","c")
-  y_coeffi_var_table=lapply(1:(nrow(outS_y$s)-1),function(i){dlmSvd2var(outS_y$U.S[[i+1]],outS_y$D.S[i+1,])})
+  # y_coeffi_var_table=lapply(1:(nrow(outS_y$s)-1),function(i){dlmSvd2var(outS_y$U.S[[i+1]],outS_y$D.S[i+1,])})
   c_coeffi_table=as.data.frame(outS_c$s[-1,]);colnames(c_coeffi_table)=c("(Intercept)","c_1","x_1","y_1")
-  c_coeffi_var_table=lapply(1:(nrow(outS_c$s)-1),function(i){dlmSvd2var(outS_c$U.S[[i+1]],outS_c$D.S[i+1,])})
+  # c_coeffi_var_table=lapply(1:(nrow(outS_c$s)-1),function(i){dlmSvd2var(outS_c$U.S[[i+1]],outS_c$D.S[i+1,])})
   
   # ------------------------------#
   #      Calculate Estimand       #
@@ -109,21 +106,21 @@ for(seed in 1:500){
   # 1.contemporaneous effect, 1 lag controlled direct effect, 1-lag effect, 1 step total effect of all time points
   time=1:(nrow(outF_y$m)-1)
   # contemporaneous effect: Y(1) - Y(0)
-  contemporaneous[[seed]]=calculate.causaleffect(t=time,tx=1,y_coeffi_table,c_coeffi_table,printFlag=F)-
+  contemporaneous[,seed]=calculate.causaleffect(t=time,tx=1,y_coeffi_table,c_coeffi_table,printFlag=F)-
     calculate.causaleffect(t=time,tx=0,y_coeffi_table,c_coeffi_table,printFlag=F)
   # 1-lag effect: Y(1,0) - Y(0,0)
-  lag1[[seed]]=calculate.causaleffect(t=time,tx=c(1,0),y_coeffi_table,c_coeffi_table,printFlag=F)-
+  lag1[,seed]=calculate.causaleffect(t=time,tx=c(1,0),y_coeffi_table,c_coeffi_table,printFlag=F)-
     calculate.causaleffect(t=time,tx=c(0,0),y_coeffi_table,c_coeffi_table,printFlag=F)
   # 2-lag effect: Y(1,0,0) - Y(0,0,0)
-  lag2[[seed]]=calculate.causaleffect(t=time,tx=c(1,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)-calculate.causaleffect(t=time,tx=c(0,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)
+  lag2[,seed]=calculate.causaleffect(t=time,tx=c(1,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)-calculate.causaleffect(t=time,tx=c(0,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)
   # 3-lag effect: Y(1,0,0,0) - Y(0,0,0,0): -2.085623
-  lag3[[seed]]=calculate.causaleffect(t=time,tx=c(1,0,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)-calculate.causaleffect(t=time,tx=c(0,0,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)
+  lag3[,seed]=calculate.causaleffect(t=time,tx=c(1,0,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)-calculate.causaleffect(t=time,tx=c(0,0,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)
   # 4-lag effect: Y(1,0,0,0,0) - Y(0,0,0,0,0): -1.615715
-  lag4[[seed]]=calculate.causaleffect(t=time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)-calculate.causaleffect(t=time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)
+  lag4[,seed]=calculate.causaleffect(t=time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)-calculate.causaleffect(t=time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table,printFlag=F)
   # 1 lag controlled direct effect
-  lag1_direct[[seed]]=calculate.controlled_direct_effect(t=time,y_coeffi_table,printFlag=F)
+  lag1_direct[,seed]=calculate.controlled_direct_effect(t=time,y_coeffi_table,printFlag=F)
   # 1 step total effect: Y(1,1) - Y(0,0)
-  total1[[seed]]=calculate.causaleffect(t=time,tx=c(1,1),y_coeffi_table,c_coeffi_table,printFlag=F)-
+  total1[,seed]=calculate.causaleffect(t=time,tx=c(1,1),y_coeffi_table,c_coeffi_table,printFlag=F)-
     calculate.causaleffect(t=time,tx=c(0,0),y_coeffi_table,c_coeffi_table,printFlag=F)
   
   # 2.impulse impact plot and step response plot at t=500 for 10 days
@@ -142,9 +139,11 @@ for(seed in 1:500){
   # plot(0:4,c(estimand1,estimand2,estimand3,estimand4,estimand5),type="l",ylim=c(-5.1,2),xlab="# lags",ylab="causal estimands")
   # abline(h=0,col="red")
   # Method 2: from simulated version
-  estimand_1to7[[seed]]=simulate.counterfactual_path_singlet(t=one_time,tx=c(1,0,0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)-
+  estimand_1to7[,seed]=simulate.counterfactual_path_singlet(t=one_time,tx=c(1,0,0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)-
     simulate.counterfactual_path_singlet(t=one_time,tx=c(0,0,0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)
 }
+# save(contemporaneous,lag1,lag2,lag3,lag4,lag1_direct,total1,estimand_1to7,
+#      file="simu_causal_nonsta.Rdata")
 save(contemporaneous,lag1,lag2,lag3,lag4,lag1_direct,total1,estimand_1to7,
      file="/home/cai.1083/paper_causal_estimand_simu/simu_causal_nonsta.Rdata")
 
