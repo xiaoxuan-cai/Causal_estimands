@@ -95,7 +95,7 @@ calculate.causaleffect_singlet=function(single_t,tx,y_coeffi_table,c_coeffi_tabl
 #       which covers the function calculate.effect_allt_withCI when CI=T
 #       this function also inherets all checking-in on parameters from "calculate.causaleffect_singlet" and "calculate.effect_allt_withCI"
 calculate.causaleffect=function(t,tx,y_coeffi_table,c_coeffi_table,
-                                CI=F,n_sim=NA,y_coeffi_var_table=NA,c_coeffi_var_table=NA,seed=1,
+                                CI=F,n_sim=NA,y_coeffi_var_table=NA,c_coeffi_var_table=NA,seed,
                                 printFlag=T){
   if(printFlag){
     cat(blue(" =================================================================================================== \n"))
@@ -402,7 +402,7 @@ calculate.causaleffect=function(t,tx,y_coeffi_table,c_coeffi_table,
 # Renamed function from "calculate.controlled_direct_effect_allt_withCI" to "calculate.controlled_direct_effect"
 # Note: this function now supports calculating effects for any arbitrary collection of time points, including a single time point or all time points.
 calculate.controlled_direct_effect=function(t,y_coeffi_table,
-                                            CI=F,n_sim=NA,y_coeffi_var_table=NA,seed=1,
+                                            CI=F,n_sim=NA,y_coeffi_var_table=NA,seed,
                                             printFlag=T){
   if(printFlag){
     cat(blue(" =================================================================================================== \n"))
@@ -533,7 +533,7 @@ simulate.counterfactual_path_singlet_withoutCI=function(t,tx,y_coeffi_table,c_co
 # Updated on 07/24/2025:
 # Renamed function from "simulate.counterfactual_singlet_withCI" to "simulate.counterfactual_path_singlet"
 simulate.counterfactual_path_singlet=function(t,tx,y_coeffi_table,c_coeffi_table,raw_data,
-                                              CI=F,n_sim=NA,y_coeffi_var_table=NA,c_coeffi_var_table=NA,seed=1,
+                                              CI=F,n_sim=NA,y_coeffi_var_table=NA,c_coeffi_var_table=NA,seed,
                                               printFlag=T){
   if(printFlag){
     cat(blue(" =================================================================================================== \n"))
