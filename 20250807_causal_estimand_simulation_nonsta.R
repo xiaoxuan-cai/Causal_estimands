@@ -52,6 +52,7 @@ contemporaneous=lag1=lag2=lag3=lag4=lag1_direct=total1=matrix(NA,nrow=1000,ncol=
 estimand_1to7=matrix(NA,nrow=7,ncol=n_seed)
 
 for(seed in 1:n_seed){
+  cat(seed,"\n")
   # ------------------------------#
   #       Simulation Data         #
   # ------------------------------#
