@@ -49,7 +49,7 @@ source("/home/cai.1083/paper_causal_estimand_simu/helper_other.R")
 
 n_seed=500
 contemporaneous=lag1=lag2=lag3=lag4=lag1_direct=total1=matrix(NA,nrow=1000,ncol=n_seed)
-estimand_1to7=matrix(NA,nrow=7,ncol=n_seed)
+estimand_qlag=estimand_qstep_total=matrix(NA,nrow=20,ncol=n_seed)
 
 for(seed in 1:n_seed){
   cat(seed,"\n")
@@ -184,21 +184,32 @@ for(seed in 1:n_seed){
   # plot(0:4,c(estimand1,estimand2,estimand3,estimand4,estimand5),type="l",ylim=c(-5.1,2),xlab="# lags",ylab="causal estimands")
   # abline(h=0,col="red")
   # Method 2: from simulated version
-  estimand_1to7[,seed]=simulate.counterfactual_path_singlet(t=one_time,tx=c(1,0,0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)-
-    simulate.counterfactual_path_singlet(t=one_time,tx=c(0,0,0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)
+  estimand_qlag[,seed]=simulate.counterfactual_path_singlet(t=one_time,tx=c(1,rep(0,19)),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)-
+    simulate.counterfactual_path_singlet(t=one_time,tx=rep(0,20),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)
+  estimand_qstep_total[,seed]=simulate.counterfactual_path_singlet(t=one_time,tx=rep(1,20),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)-
+    simulate.counterfactual_path_singlet(t=one_time,tx=rep(0,20),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)
 }
 # save(contemporaneous,lag1,lag2,lag3,lag4,lag1_direct,total1,estimand_1to7,
 #      file="simu_causal_nonsta.Rdata")
-save(contemporaneous,lag1,lag2,lag3,lag4,lag1_direct,total1,estimand_1to7,
+save(contemporaneous,lag1,lag2,lag3,lag4,lag1_direct,total1,estimand_qlag,estimand_qstep_total,
      file="/home/cai.1083/paper_causal_estimand_simu/simu_causal_nonsta.Rdata")
 
+# calculate true values
+y_coeffi_table_new=as.data.frame(list.cbind(parameters_for_y)[-c(1:100),-6]);colnames(y_coeffi_table_new)=c("(Intercept)","y_1","x","x_1","c")
+c_coeffi_table_new=as.data.frame(list.cbind(parameters_for_c)[-c(1:100),-5]);colnames(c_coeffi_table_new)=c("(Intercept)","c_1","x_1","y_1")
+lag1_ture=calculate.causaleffect(t=1:1000,tx=c(1,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)-calculate.causaleffect(t=1:1000,tx=c(0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)
+lag2_ture=calculate.causaleffect(t=1:1000,tx=c(1,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)-calculate.causaleffect(t=1:1000,tx=c(0,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)
+lag3_ture=calculate.causaleffect(t=1:1000,tx=c(1,0,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)-calculate.causaleffect(t=1:1000,tx=c(0,0,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)
+lag4_ture=calculate.causaleffect(t=1:1000,tx=c(1,0,0,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)-calculate.causaleffect(t=1:1000,tx=c(0,0,0,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)
+estimand_1to7_ture=simulate.counterfactual_path_singlet(t=500,tx=c(1,0,0,0,0,0,0),y_coeffi_table_new,c_coeffi_table_new,raw_data=data,printFlag=F)-
+  simulate.counterfactual_path_singlet(t=500,tx=c(0,0,0,0,0,0,0),y_coeffi_table_new,c_coeffi_table_new,raw_data=data,printFlag=F)
 
 # plot
 library(rlist)
+load("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/simu_causal_nonsta.Rdata")
 address="/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graph_simu/"
 
-a=list.rbind(contemporaneous)
-contemporaneous_summary=data.frame(mean=colMeans(a),t(apply(a,2,quantile,probs=c(0.025,0.975))))
+contemporaneous_summary=data.frame(mean=rowMeans(contemporaneous),t(apply(contemporaneous,1,quantile,probs=c(0.025,0.975))))
 colnames(contemporaneous_summary)=c("mean","2.5%","97.5%")
 pdf(file=paste(address,"contemporaneous.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
@@ -216,32 +227,83 @@ legend("bottomright",legend=c("estimate", "95% CI","true"),
        lwd = c(1,NA,2), pt.bg = c(NA,"grey90",NA),cex=2)
 dev.off()
 
-b=list.rbind(lag1)
-lag1_summary=data.frame(mean=colMeans(b[,-1]),t(apply(b[,-1],2,quantile,probs=c(0.025,0.975))))
+lag1_summary=data.frame(mean=rowMeans(lag1[-1,]),t(apply(lag1[-1,],1,quantile,probs=c(0.025,0.975))))
 colnames(lag1_summary)=c("mean","2.5%","97.5%")
 pdf(file=paste(address,"lag1.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
 plot(2:1000,lag1_summary$mean,ylim=c(min(lag1_summary),max(lag1_summary)),type="l",
      bty="n",cex.lab=2.5,cex.axis=2.5,
-     ylab="lag 1 ",xlab="time")
+     ylab="1-lag effect",xlab="time")
 polygon(c(2:1000,rev(2:1000)),c(lag1_summary$`2.5%`,rev(lag1_summary$`97.5%`)),col="grey90",border="grey")
 points(2:1000,lag1_summary$mean,type="l")
-points(2:401,rep(-2.5,400),col="red",type="l",lty=2,lwd=2)
-points(402:701,rep(-5,300),col="red",type="l",lty=2,lwd=2)
-points(702:1000,rep(-2.5,300),col="red",type="l",lty=2,lwd=2)
+points(1:1000,lag1_ture,col="red",type="l",lty=2,lwd=2)
 legend("bottomright",legend=c("estimate", "95% CI","true"),
        pch = c(NA,15,NA), lty=c(1,1,2), col=c("black","grey","red"),
        bty = "n", # remove the bounder of the legend
        lwd = c(1,NA,2), pt.bg = c(NA,"grey90",NA),cex=2)
 dev.off()
 
-# calculate true values
-y_coeffi_table_new=as.data.frame(list.cbind(parameters_for_y)[-c(1:100),-6]);colnames(y_coeffi_table_new)=c("(Intercept)","y_1","x","x_1","c")
-c_coeffi_table_new=as.data.frame(list.cbind(parameters_for_c)[-c(1:100),-5]);colnames(c_coeffi_table_new)=c("(Intercept)","c_1","x_1","y_1")
-bb2=calculate.causaleffect(t=1:1000,tx=c(1,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)-calculate.causaleffect(t=1:1000,tx=c(0,0),y_coeffi_table,c_coeffi_table,printFlag=F)
+lag2_summary=data.frame(mean=rowMeans(lag2[-c(1:2),]),t(apply(lag2[-c(1:2),],1,quantile,probs=c(0.025,0.975))))
+colnames(lag2_summary)=c("mean","2.5%","97.5%")
+pdf(file=paste(address,"lag2.pdf",sep=""),width=11,height=8)
+par(mar = c(5, 6, 1, 1))
+plot(3:1000,lag2_summary$mean,ylim=c(min(lag2_summary),max(lag2_summary)),type="l",
+     bty="n",cex.lab=2.5,cex.axis=2.5,
+     ylab="2-lag effect",xlab="time")
+polygon(c(3:1000,rev(3:1000)),c(lag2_summary$`2.5%`,rev(lag2_summary$`97.5%`)),col="grey90",border="grey")
+points(3:1000,lag2_summary$mean,type="l")
+points(1:1000,lag2_ture,col="red",type="l",lty=2,lwd=2)
+legend("bottomright",legend=c("estimate", "95% CI","true"),
+       pch = c(NA,15,NA), lty=c(1,1,2), col=c("black","grey","red"),
+       bty = "n", # remove the bounder of the legend
+       lwd = c(1,NA,2), pt.bg = c(NA,"grey90",NA),cex=2)
+dev.off()
 
-head(y_coeffi_table_new)
-head(y_coeffi_table)
+lag3_summary=data.frame(mean=rowMeans(lag3[-c(1:3),]),t(apply(lag3[-c(1:3),],1,quantile,probs=c(0.025,0.975))))
+colnames(lag3_summary)=c("mean","2.5%","97.5%")
+pdf(file=paste(address,"lag3.pdf",sep=""),width=11,height=8)
+par(mar = c(5, 6, 1, 1))
+plot(4:1000,lag3_summary$mean,ylim=c(min(lag3_summary),max(lag3_summary)),type="l",
+     bty="n",cex.lab=2.5,cex.axis=2.5,
+     ylab="3-lag effect",xlab="time")
+polygon(c(4:1000,rev(4:1000)),c(lag3_summary$`2.5%`,rev(lag3_summary$`97.5%`)),col="grey90",border="grey")
+points(4:1000,lag3_summary$mean,type="l")
+points(1:1000,lag3_ture,col="red",type="l",lty=2,lwd=2)
+legend("bottomright",legend=c("estimate", "95% CI","true"),
+       pch = c(NA,15,NA), lty=c(1,1,2), col=c("black","grey","red"),
+       bty = "n", # remove the bounder of the legend
+       lwd = c(1,NA,2), pt.bg = c(NA,"grey90",NA),cex=2)
+dev.off()
 
-head(c_coeffi_table_new)
-head(c_coeffi_table)
+lag4_summary=data.frame(mean=rowMeans(lag4[-c(1:4),]),t(apply(lag4[-c(1:4),],1,quantile,probs=c(0.025,0.975))))
+colnames(lag4_summary)=c("mean","2.5%","97.5%")
+pdf(file=paste(address,"lag4.pdf",sep=""),width=11,height=8)
+par(mar = c(5, 6, 1, 1))
+plot(5:1000,lag4_summary$mean,ylim=c(min(lag4_summary),max(lag4_summary)),type="l",
+     bty="n",cex.lab=2.5,cex.axis=2.5,
+     ylab="4-lag effect",xlab="time")
+polygon(c(5:1000,rev(5:1000)),c(lag4_summary$`2.5%`,rev(lag4_summary$`97.5%`)),col="grey90",border="grey")
+points(5:1000,lag4_summary$mean,type="l")
+points(1:1000,lag4_ture,col="red",type="l",lty=2,lwd=2)
+legend("bottomright",legend=c("estimate", "95% CI","true"),
+       pch = c(NA,15,NA), lty=c(1,1,2), col=c("black","grey","red"),
+       bty = "n", # remove the bounder of the legend
+       lwd = c(1,NA,2), pt.bg = c(NA,"grey90",NA),cex=2)
+dev.off()
+
+estimand_1to7_summary=data.frame(mean=rowMeans(estimand_1to7),t(apply(estimand_1to7,1,quantile,probs=c(0.025,0.975))))
+colnames(estimand_1to7_summary)=c("mean","2.5%","97.5%")
+pdf(file=paste(address,"estimand_1to7.pdf",sep=""),width=11,height=8)
+par(mar = c(5, 6, 1, 1))
+plot(1:7,estimand_1to7_summary$mean,ylim=c(min(estimand_1to7_summary),0),type="l",
+     bty="n",cex.lab=2.5,cex.axis=2.5,
+     ylab="q-lag effect at t=500",xlab="# lags")
+polygon(c(1:7,rev(1:7)),c(estimand_1to7_summary$`2.5%`,rev(estimand_1to7_summary$`97.5%`)),col="grey90",border="grey")
+points(1:7,estimand_1to7_summary$mean,type="l")
+points(1:7,estimand_1to7_ture,col="red",type="l",lty=2,lwd=2)
+legend("bottomright",legend=c("estimate", "95% CI","true"),
+       pch = c(NA,15,NA), lty=c(1,1,2), col=c("black","grey","red"),
+       bty = "n", # remove the bounder of the legend
+       lwd = c(1,NA,2), pt.bg = c(NA,"grey90",NA),cex=2)
+dev.off()
+
