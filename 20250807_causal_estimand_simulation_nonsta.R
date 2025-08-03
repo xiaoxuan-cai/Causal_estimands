@@ -1,13 +1,168 @@
 # File: 20250708_causal_estimand_simulation_non.R
-# Date: 2025.07.08
-# Content: time-varying coefficients + treatment/outcome-covariate feedback + continuous tx/outcome/covariate 
-#          1. run simulations on cluster
-#          2. calculate true values
-#          3. make plots
+# Date: 2025-07-08
+# Note: This script was created for the paper revision.
+#       Previously, we included only stationary-case simulations to test the algorithm.
+#       These results were not presented in the paper or appendix.
+#       In response to reviewer feedback, we added a new simulation example for the non-stationary case, reflecting the structure of the real data application.
 
-# 1. save all R code from "start: code on cluster" to "end: code on cluster" as "20250807_causal_esimand_simulation_nonsta_cluster.R"
-# 2. make an copy of all files being sources in the same folder
-# 3. make "causal_estimand_simu_stat.sh" with the following content
+# Structure:
+# Part I (Stationary Case):
+#     This section serves as a comprehensive demonstration of the full set of implemented functions.
+#     It includes both analytical and simulation-based methods for estimating causal effects with and without CI.
+#     Estimation without CI does not require setting the seed or specifying coefficient variance.
+#     These results are NOT included in the paper or appendix and are only for illustrative purposes.
+# Part II (Non-Stationary Case):
+#     This section is used in the appendix and is designed to reflect the time-varying nature of the real data application.
+#     It makes use of only a subset of the full functionality:
+#     For estimating causal effect trajectories across all time points, we use analytical methods *without* CI, due to
+#     - computation efficiency (for up to 4 lags) as it is faster than simulated version and needs fewer input
+#     - CI is not calculated as CI coverage is not reported in the result
+#     Simulations in this section were run on a computing cluster, and the outputs were used to generate summary plots.
+#     Features of the non-stationary case:
+#     - Time-varying coefficients
+#     - Feedback between treatment, outcome, and covariates
+#     - Continuous treatment, outcome, and covariate variables
+
+# Workflow:
+# 1. Run simulations on the cluster
+# 2. Calculate true causal effects
+# 3. Generate summary plots
+
+library(MASS) 
+library(crayon) # for cat colors, OSU
+library(lubridate) # for dates, OSU
+library(mice) # for multiple imputation, OSU
+library(forecast) # for most the time series functions: auto.arima, OSU
+library(changepoint) # for finding change points, OSU
+library(dlm) # for statespace model, OSU
+library(data.table) # for simulate.counterfactual_path_singlet to combine items of list
+source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 2_helper functions.R")
+source("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/helper_causal estimands.R")
+source("/Users/xiaoxuancai/Documents/GitHub/SSMimpute2/helper_SSM_version3.R")
+source("/Users/xiaoxuancai/Documents/GitHub/SSMimpute2/helper_other.R")
+
+#####################################################################################
+###########                     Stationary case                           ###########
+###########      (you may skip as it's not used for paper/appendix)       ###########
+#####################################################################################
+# Y_t= 35 + 0.5 Y_{t-1} - 2 X_t - X_{t-1} - C_t + noise (var=0.1)
+# X_t= 0  + 0.1 C_{t} + 0.3 X_{t-1} + 0.05 Y_{t-1} + noise (var=0.1)
+# C_t= 7  + 0.2 C_{t-1} - 0.2 Y_{t-1} + X_{t-1} + noise (var=0.1)
+set.seed(1)
+periods=1000
+# parameters for c
+parameters_for_c=list(baseline=extend(7,periods),
+                      c=extend(0.2,periods),
+                      y=extend(-0.2,periods),
+                      x=extend(1,periods),
+                      sd=extend(sqrt(0.1),periods))
+model_for_c=c("baseline","c","x","y")
+# parameters for x
+parameters_for_x=list(baseline=extend(0,periods),
+                      c=extend(0.1,periods),
+                      x=extend(0.3,periods),
+                      y=extend(0.05,periods),
+                      sd=extend(sqrt(0.1),periods))
+model_for_x=c("baseline","c","x","y")
+# parameters for y
+lag_x_on_y=2;lag_c_on_y=1;lag_y_on_y=1
+treatment_effects=matrix(c(-2,-1),ncol=lag_x_on_y,byrow=T)
+model_for_y=c("baseline","c","x","y")
+parameters_for_y=list(baseline=extend(35,periods),
+                      y=as.matrix(extend(0.5,periods)),
+                      x=extend_into_matrix(treatment_effects,periods),
+                      c=as.matrix(extend(-1,periods)),
+                      sd=extend(sqrt(0.1),periods))
+colnames(parameters_for_y$x)=paste("t",0:(ncol(parameters_for_y$x)-1),sep="-")
+colnames(parameters_for_y$y)=paste("t",1:ncol(parameters_for_y$y),sep="-")
+colnames(parameters_for_y$c)=paste("t",0:(ncol(parameters_for_y$c)-1),sep="-")
+# generate data
+simulation=sim_y_x_c_univariate(given.c=F,input.c=NULL,parameters_for_c=parameters_for_c,model_for_c=model_for_c,initial.c=NULL,
+                                given.x=F,input.x=NULL,parameters_for_x=parameters_for_x,model_for_x=model_for_x,initial.x=NULL,type_for_x="continuous",
+                                given.y=F,input.y=NULL,parameters_for_y=parameters_for_y,model_for_y=model_for_y,initial.y=NULL,
+                                lag_y_on_y=lag_y_on_y,lag_x_on_y=lag_x_on_y,lag_c_on_y=lag_c_on_y,interaction_pairs=NULL,
+                                n=sum(periods),printFlag=T)
+data=data.frame(Date=Sys.Date()-days(length(simulation$y):1),y=simulation$y,x=simulation$x,c=simulation$c,simulation$noise_y)
+param=list(list(lagged_param=list(variables=c("y","x","c"),param=rep(1,3))))
+data=add_variables_procedures(data,param)
+
+result_y=summary(lm(y~y_1+x+x_1+c,data=data[-c(1),]));result_y
+# Coefficients:
+#               Estimate Std. Error t value Pr(>|t|)    
+#   (Intercept) 34.120015   0.409160   83.39   <2e-16 ***
+#   y_1          0.521032   0.009281   56.14   <2e-16 ***
+#   x           -1.970228   0.031350  -62.84   <2e-16 ***
+#   x_1         -1.070711   0.041688  -25.68   <2e-16 ***
+#   c           -0.959736   0.031287  -30.68   <2e-16 ***
+result_c=summary(lm(c~c_1+x_1+y_1,data=data[-c(1),]));result_c
+# Coefficients:
+#               Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)    7.32109    0.77945   9.393  < 2e-16 ***
+#   c_1          0.17448    0.03815   4.573 5.41e-06 ***
+#   x_1          0.97918    0.03555  27.541  < 2e-16 ***
+#   y_1         -0.20456    0.01399 -14.622  < 2e-16 ***
+
+y_coeffi_table=as.data.frame(matrix(rep(result_y$coefficients[,1],sum(periods)),nrow=sum(periods),byrow=T))
+colnames(y_coeffi_table)=names(result_y$coefficients[,1])
+y_coeffi_var_table=lapply(1:sum(periods),function(i){vcov(result_y)})
+c_coeffi_table=as.data.frame(matrix(rep(result_c$coefficients[,1],sum(periods)),nrow=sum(periods),byrow=T))
+colnames(c_coeffi_table)=names(result_c$coefficients[,1])
+c_coeffi_var_table=lapply(1:sum(periods),function(i){vcov(result_c)})
+
+# Calculate causal estimands for t = 10
+# (Note: the choice of time point is arbitrary, as the coefficients are time-invariant)
+
+# Method 1: Analytical calculation of causal estimands (with/without CI)
+# ---------------------------------------------------------------
+# - Confidence intervals (CI) can be optionally computed.
+# - The unified function `calculate.causaleffect` replaces earlier versions:
+#     * `calculate.effect_singlet`
+#     * `calculate.effect_allt`
+#     * `calculate.effect_allt_withCI`
+# - This new function yields identical results but offers greater flexibility:
+#     * Allows estimation at multiple time point(s)
+#     * Supports both with and without CI in a single function
+#     * Can only calculate contemporaneous effect and lag effect up to 4 lags
+time=10
+# Y(1) - Y(0): -1.970228
+estimand1=calculate.causaleffect(t=time,tx=1,y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=time,tx=0,y_coeffi_table,c_coeffi_table);estimand1
+# calculate estimand1 with CI
+# estimand1=calculate.causaleffect(t=time,tx=1,y_coeffi_table,c_coeffi_table,CI=T,n_sim=10,y_coeffi_var_table,c_coeffi_var_table,seed=1)-
+#           calculate.causaleffect(t=time,tx=0,y_coeffi_table,c_coeffi_table,CI=T,n_sim=10,y_coeffi_var_table,c_coeffi_var_table,seed=1);estimand1
+# Y(1,0) - Y(0,0): -3.423824
+estimand2=calculate.causaleffect(t=time,tx=c(1,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=time,tx=c(0,0),y_coeffi_table,c_coeffi_table);estimand2
+# Y(1,0,0) - Y(0,0,0): -2.687571
+estimand3=calculate.causaleffect(t=time,tx=c(1,0,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=time,tx=c(0,0,0),y_coeffi_table,c_coeffi_table);estimand3
+# Y(1,0,0,0) - Y(0,0,0,0): -2.085623
+estimand4=calculate.causaleffect(t=time,tx=c(1,0,0,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=time,tx=c(0,0,0,0),y_coeffi_table,c_coeffi_table);estimand4
+# Y(1,0,0,0,0) - Y(0,0,0,0,0): -1.615715
+estimand5=calculate.causaleffect(t=time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table);estimand5
+plot(0:4,c(estimand1,estimand2,estimand3,estimand4,estimand5),type="l",ylim=c(-4,0),xlab="# lags",ylab="causal estimands")
+abline(h=0,col="red")
+
+# Method 2: Simulation-based calculation of causal estimands (with/without CI)
+# ---------------------------------------------------------------------
+# - Simulates the full path of lagged causal effects ending at a time point (e.g., t = 10)
+# - Unlike the analytical method (which simulates 1-lag effects across multiple time points),
+#   this approach simulates *all* lag effects (e.g., contemporaneous effect and 1 to 4 lag effects) ending at a *single* time point
+one_time=10
+estimand_1to5=simulate.counterfactual_path_singlet(t=one_time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data[,c(1:4)])-
+  simulate.counterfactual_path_singlet(t=one_time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data[,c(1:4)])
+estimand_1to5 # the same as c(estimand1,estimand2,estimand3,estimand4,estimand5)
+estimand_1to5_withCI=simulate.counterfactual_path_singlet(t=one_time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data[,c(1:4)],CI=T,n_sim=100,y_coeffi_var_table,c_coeffi_var_table,seed=1)-
+  simulate.counterfactual_path_singlet(t=one_time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table,raw_data=data[,c(1:4)],CI=T,n_sim=100,y_coeffi_var_table,c_coeffi_var_table,seed=1)
+boxplot(estimand_1to5_withCI)
+points(estimand_1to5,col="blue",pch=16,type="l",lty=3)
+
+#####################################################################################
+###########                   Non-stationary case                         ###########
+#####################################################################################
+# Cluster Execution Instructions:
+# 1. Save R commands (between "start: code on cluster" and "end: code on cluster”)
+#    as a new script: "20250807_causal_estimand_simulation_nonsta_cluster.R"
+# 2. Copy all R source files referenced into the same folder on cluster.
+# 3. Create a job script "causal_estimand_simu_stat.sh" with the following content:
+# --------------------------------------------------------------
 # #!/usr/bin/env bash
 # #SBATCH --partition=stat,batch
 # #SBATCH --time=01:00:00
@@ -16,18 +171,19 @@
 # #SBATCH --mem=1G
 # #SBATCH --mail-type=FAIL
 # #SBATCH --mail-user=cai.1083@osu.edu
-# 
-# # cd to dir from which I submit job so that
-# # Rscript can find R code file
+#
+# # Navigate to the submission directory so Rscript can find the files
 # cd $SLURM_SUBMIT_DIR
-# 
-# # COMMANDS TO RUN
+#
+# # Load necessary modules
 # ml gnu/9.1.0
 # ml R/4.4.0
-# 
-# Rscript "20250807_causal_esimand_simulation_nonsta_cluster.R"
-# 
-# 4. run "sbatch causal_estimand_simu_stat.sh"
+#
+# # Execute the R script
+# Rscript "20250807_causal_estimand_simulation_nonsta_cluster.R"
+# --------------------------------------------------------------
+# 4. Submit the job using:
+# sbatch causal_estimand_simu_stat.sh
 
 
 # --------------------- start: code on cluster --------------------- #
@@ -38,10 +194,6 @@ library(mice) # for multiple imputation, OSU
 library(forecast) # for most the time series functions: auto.arima, OSU
 library(changepoint) # for finding change points, OSU
 library(dlm) # for statespace model, OSU
-# source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 2_helper functions.R")
-# source("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/helper_causal estimands.R")
-# source("/Users/xiaoxuancai/Documents/GitHub/SSMimpute2/helper_SSM_version3.R")
-# source("/Users/xiaoxuancai/Documents/GitHub/SSMimpute2/helper_other.R")
 source("/home/cai.1083/paper_causal_estimand_simu/Summary 2_helper functions.R")
 source("/home/cai.1083/paper_causal_estimand_simu/helper_causal estimands.R")
 source("/home/cai.1083/paper_causal_estimand_simu/helper_SSM_version3.R")
@@ -50,7 +202,6 @@ source("/home/cai.1083/paper_causal_estimand_simu/helper_other.R")
 n_seed=500
 contemporaneous=lag1=lag2=lag3=lag4=lag1_direct=total1=matrix(NA,nrow=1000,ncol=n_seed)
 estimand_qlag=estimand_qstep_total=matrix(NA,nrow=20,ncol=n_seed)
-
 for(seed in 1:n_seed){
   cat(seed,"\n")
   # ------------------------------#
@@ -170,29 +321,14 @@ for(seed in 1:n_seed){
   
   # 2.impulse impact plot and step response plot at t=500 for 10 days
   one_time=500
-  # # Method 1: calculate time-invariant causal estimands (withoutCI) from analytical expressions
-  # # Y(1) - Y(0)
-  # estimand1=calculate.causaleffect(t=one_time,tx=1,y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=one_time,tx=0,y_coeffi_table,c_coeffi_table);estimand1
-  # # Y(1,0) - Y(0,0)
-  # estimand2=calculate.causaleffect(t=one_time,tx=c(1,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=one_time,tx=c(0,0),y_coeffi_table,c_coeffi_table);estimand2
-  # # Y(1,0,0) - Y(0,0,0)
-  # estimand3=calculate.causaleffect(t=one_time,tx=c(1,0,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=one_time,tx=c(0,0,0),y_coeffi_table,c_coeffi_table);estimand3
-  # # Y(1,0,0,0) - Y(0,0,0,0)
-  # estimand4=calculate.causaleffect(t=one_time,tx=c(1,0,0,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=one_time,tx=c(0,0,0,0),y_coeffi_table,c_coeffi_table);estimand4
-  # # Y(1,0,0,0,0) - Y(0,0,0,0,0)
-  # estimand5=calculate.causaleffect(t=one_time,tx=c(1,0,0,0,0),y_coeffi_table,c_coeffi_table)-calculate.causaleffect(t=one_time,tx=c(0,0,0,0,0),y_coeffi_table,c_coeffi_table);estimand5
-  # plot(0:4,c(estimand1,estimand2,estimand3,estimand4,estimand5),type="l",ylim=c(-5.1,2),xlab="# lags",ylab="causal estimands")
-  # abline(h=0,col="red")
-  # Method 2: from simulated version
   estimand_qlag[,seed]=simulate.counterfactual_path_singlet(t=one_time,tx=c(1,rep(0,19)),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)-
     simulate.counterfactual_path_singlet(t=one_time,tx=rep(0,20),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)
   estimand_qstep_total[,seed]=simulate.counterfactual_path_singlet(t=one_time,tx=rep(1,20),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)-
     simulate.counterfactual_path_singlet(t=one_time,tx=rep(0,20),y_coeffi_table,c_coeffi_table,raw_data=data,printFlag=F)
 }
-# save(contemporaneous,lag1,lag2,lag3,lag4,lag1_direct,total1,estimand_1to7,
-#      file="simu_causal_nonsta.Rdata")
 save(contemporaneous,lag1,lag2,lag3,lag4,lag1_direct,total1,estimand_qlag,estimand_qstep_total,
      file="/home/cai.1083/paper_causal_estimand_simu/simu_causal_nonsta.Rdata")
+# --------------------- end: code on cluster --------------------- #
 
 # calculate true values
 y_coeffi_table_new=as.data.frame(list.cbind(parameters_for_y)[-c(1:100),-6]);colnames(y_coeffi_table_new)=c("(Intercept)","y_1","x","x_1","c")
@@ -213,7 +349,7 @@ contemporaneous_summary=data.frame(mean=rowMeans(contemporaneous),t(apply(contem
 colnames(contemporaneous_summary)=c("mean","2.5%","97.5%")
 pdf(file=paste(address,"contemporaneous.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
-plot(1:1000,contemporaneous_summary$mean,ylim=c(min(contemporaneous_summary)-1,max(contemporaneous_summary)+1),type="l",
+plot(1:1000,contemporaneous_summary$mean,ylim=c(-7,-1),type="l",
      bty="n",cex.lab=2.5,cex.axis=2.5,
      ylab="contemporaneous",xlab="time")
 polygon(c(1:1000,rev(1:1000)),c(contemporaneous_summary$`2.5%`,rev(contemporaneous_summary$`97.5%`)),col="grey90",border="grey")
@@ -231,13 +367,13 @@ lag1_summary=data.frame(mean=rowMeans(lag1[-1,]),t(apply(lag1[-1,],1,quantile,pr
 colnames(lag1_summary)=c("mean","2.5%","97.5%")
 pdf(file=paste(address,"lag1.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
-plot(2:1000,lag1_summary$mean,ylim=c(min(lag1_summary),max(lag1_summary)),type="l",
+plot(2:1000,lag1_summary$mean,ylim=c(-7,-1),type="l",
      bty="n",cex.lab=2.5,cex.axis=2.5,
      ylab="1-lag effect",xlab="time")
 polygon(c(2:1000,rev(2:1000)),c(lag1_summary$`2.5%`,rev(lag1_summary$`97.5%`)),col="grey90",border="grey")
 points(2:1000,lag1_summary$mean,type="l")
 points(1:1000,lag1_ture,col="red",type="l",lty=2,lwd=2)
-legend("bottomright",legend=c("estimate", "95% CI","true"),
+legend("topright",legend=c("estimate", "95% CI","true"),
        pch = c(NA,15,NA), lty=c(1,1,2), col=c("black","grey","red"),
        bty = "n", # remove the bounder of the legend
        lwd = c(1,NA,2), pt.bg = c(NA,"grey90",NA),cex=2)
@@ -247,7 +383,7 @@ lag2_summary=data.frame(mean=rowMeans(lag2[-c(1:2),]),t(apply(lag2[-c(1:2),],1,q
 colnames(lag2_summary)=c("mean","2.5%","97.5%")
 pdf(file=paste(address,"lag2.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
-plot(3:1000,lag2_summary$mean,ylim=c(min(lag2_summary),max(lag2_summary)),type="l",
+plot(3:1000,lag2_summary$mean,ylim=c(-7,-1),type="l",
      bty="n",cex.lab=2.5,cex.axis=2.5,
      ylab="2-lag effect",xlab="time")
 polygon(c(3:1000,rev(3:1000)),c(lag2_summary$`2.5%`,rev(lag2_summary$`97.5%`)),col="grey90",border="grey")
@@ -263,7 +399,7 @@ lag3_summary=data.frame(mean=rowMeans(lag3[-c(1:3),]),t(apply(lag3[-c(1:3),],1,q
 colnames(lag3_summary)=c("mean","2.5%","97.5%")
 pdf(file=paste(address,"lag3.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
-plot(4:1000,lag3_summary$mean,ylim=c(min(lag3_summary),max(lag3_summary)),type="l",
+plot(4:1000,lag3_summary$mean,ylim=c(-7,-1),type="l",
      bty="n",cex.lab=2.5,cex.axis=2.5,
      ylab="3-lag effect",xlab="time")
 polygon(c(4:1000,rev(4:1000)),c(lag3_summary$`2.5%`,rev(lag3_summary$`97.5%`)),col="grey90",border="grey")
@@ -279,7 +415,7 @@ lag4_summary=data.frame(mean=rowMeans(lag4[-c(1:4),]),t(apply(lag4[-c(1:4),],1,q
 colnames(lag4_summary)=c("mean","2.5%","97.5%")
 pdf(file=paste(address,"lag4.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
-plot(5:1000,lag4_summary$mean,ylim=c(min(lag4_summary),max(lag4_summary)),type="l",
+plot(5:1000,lag4_summary$mean,ylim=c(-7,-1),type="l",
      bty="n",cex.lab=2.5,cex.axis=2.5,
      ylab="4-lag effect",xlab="time")
 polygon(c(5:1000,rev(5:1000)),c(lag4_summary$`2.5%`,rev(lag4_summary$`97.5%`)),col="grey90",border="grey")
@@ -306,4 +442,7 @@ legend("bottomright",legend=c("estimate", "95% CI","true"),
        bty = "n", # remove the bounder of the legend
        lwd = c(1,NA,2), pt.bg = c(NA,"grey90",NA),cex=2)
 dev.off()
+
+
+
 
