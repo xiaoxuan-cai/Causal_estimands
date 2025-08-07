@@ -1,5 +1,6 @@
-# File: 20250708_causal_estimand_simulation_non.R
-# Date: 2025-07-08
+# File: 20210801_causal_estimand_simulation.R
+# Date: 2021-08-01
+# Update: 2025-07-08
 # Note: This script was created for the paper revision.
 #       Previously, we included only stationary-case simulations to test the algorithm.
 #       These results were not presented in the paper or appendix.
