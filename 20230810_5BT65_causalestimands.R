@@ -19,7 +19,8 @@ source("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/helper_causal estim
 source("/Users/xiaoxuancai/Documents/GitHub/SSMimpute2/helper_SSM_version3.R") 
 source("/Users/xiaoxuancai/Documents/GitHub/SSMimpute/helper_multipleimputation.R") # include merge point used for SSM and plot functions
 load("/Users/xiaoxuancai/Documents/analysis/subject_5BT65/Data/processed/combined_all_5BT65.RData")
-
+library(data.table) # for simulate.counterfactual_path_singlet to combine items of list
+library(rlist)
 # -------------------------------------------------------------------- #
 #             Organize and add variables needed for analysis           #
 # -------------------------------------------------------------------- #
@@ -61,11 +62,7 @@ all_var_y=unlist(strsplit(gsub(" ","",formula_y),"\\+|\\~"))
 data_ARIMAreg_y=data[,all_var_y]
 result_ARIMAreg_y=auto.arima(y=data_ARIMAreg_y$negative_total,
                            xreg=as.matrix(data_ARIMAreg_y)[,all_var_y[-1]],max.d=0)
-
-
-auto.arima(y=data_ARIMAreg_y$negative_total,
-           xreg=as.matrix(data_ARIMAreg_y)[,all_var_y[-c(1,2)]],max.d=0,ic="bic")
-
+#auto.arima(y=data_ARIMAreg_y$negative_total,xreg=as.matrix(data_ARIMAreg_y)[,all_var_y[-c(1,2)]],max.d=0,ic="bic")
 digits=4
 result_ARIMAreg_estimate_y=cbind("Estimate"=round(result_ARIMAreg_y$coef,digits=digits),
                                "Std. Error"=round(sqrt(diag(result_ARIMAreg_y$var.coef)),digits=digits),
@@ -305,7 +302,6 @@ result_ARIMAreg_estimate_y
 # ssm_y plots: used in the Appendix
 {
   address = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs/"
-  
   # random walk intercept
   pdf(file=paste(address,"ssmy_intercept.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
@@ -415,47 +411,52 @@ result_ARIMAreg_estimate_y
 ############################################################################
 ######     simulate/compute causal estimands of calls with CI          #####
 ############################################################################
-# jump directly to load the data without recalculation!!
-y_coeffi_var_table=lapply(1:nrow(ssm_y$out_smooth$s),function(i){dlmSvd2var(ssm_y$out_smooth$U.S[[i]],ssm_y$out_smooth$D.S[i,])});head(y_coeffi_var_table)
-c_coeffi_var_table=lapply(1:nrow(ssm_c$out_smooth$s),function(i){dlmSvd2var(ssm_c$out_smooth$U.S[[i]],ssm_c$out_smooth$D.S[i,])});head(c_coeffi_var_table)
-raw_data=data[,c(2,3,4,6)];colnames(raw_data)=c("Date","y","x","c");head(raw_data)
-# first, calculate for calls
-y_coeffi_table=as.data.frame(ssm_y$out_smooth$s);colnames(y_coeffi_table)[c(1:4,7)]=c("(Intercept)","y_1","x","x_1","c");head(y_coeffi_table)
-c_coeffi_table=as.data.frame(ssm_c$out_smooth$s);colnames(c_coeffi_table)[c(1,2,3,5)]=c("(Intercept)","c_1","x_1","y_1");head(c_coeffi_table)
-# calculate call's contemporaneous effect directly with CI (save call_contemporaneous)
-set.seed(1)
-call_contemporaneous = calculate.effect_allt_withCI(tx=c(1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
-# calculate call's 1-lag effect directly with CI
-set.seed(2)
-call_1_lag = calculate.effect_allt_withCI(tx=c(1,0),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
-# calculate call's 1-lag structural direct effect directly with CI
-set.seed(3)
-call_1_lag_structural_direct = calculate.controlled_direct_effect_allt_withCI(y_coeffi_table,y_coeffi_var_table,n_sim=1000,printFlag=T)
-# calculate call's 2-step total effect directly with CI
-set.seed(4)
-call_2_step = calculate.effect_allt_withCI(tx=c(1,1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
-# calculate call's 3-step general effect directly with CI
-set.seed(4)
-call_3_step_general_101 = calculate.effect_allt_withCI(tx=c(1,0,1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
-# impulse impact graph at t=600
-t=600;n_sim=1000
-set.seed(1)
-call_qlag_effects_part1=simulate.counterfactual_singlet_withCI(t,tx=c(1,rep(0,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
-set.seed(1)
-call_qlag_effects_part2=simulate.counterfactual_singlet_withCI(t,tx=c(0,rep(0,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
-call_effects_vs_qlag=call_qlag_effects_part1-call_qlag_effects_part2
+y_coeffi_table_call=as.data.frame(ssm_y$out_smooth$s);colnames(y_coeffi_table_call)[c(1:4,7)]=c("(Intercept)","y_1","x","x_1","c");head(y_coeffi_table_call)
+c_coeffi_table_call=as.data.frame(ssm_c$out_smooth$s);colnames(c_coeffi_table_call)[c(1,2,3,5)]=c("(Intercept)","c_1","x_1","y_1");head(c_coeffi_table_call)
+raw_data_call=data[,c(2,3,4,6)];colnames(raw_data_call)=c("Date","y","x","c");head(raw_data_call)
+y_coeffi_var_table_call=lapply(1:nrow(ssm_y$out_smooth$s),function(i){dlmSvd2var(ssm_y$out_smooth$U.S[[i]],ssm_y$out_smooth$D.S[i,])});head(y_coeffi_var_table_call)
+c_coeffi_var_table_call=lapply(1:nrow(ssm_c$out_smooth$s),function(i){dlmSvd2var(ssm_c$out_smooth$U.S[[i]],ssm_c$out_smooth$D.S[i,])});head(c_coeffi_var_table_call)
+time=1:nrow(ssm_y$out_smooth$s)
+# calculate call's contemporaneous effect with CI (save call_contemporaneous)
+call_contemporaneous = calculate.causaleffect(t=time,tx=1,y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
+                                 CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=1,printFlag=T)
+# calculate call's 1-lag effect with CI (save call_1_lag)
+call_1_lag = calculate.causaleffect(t=time,tx=c(1,0),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
+                                    CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=2,printFlag=T)
+# calculate call's 1-lag structural direct effect with CI
+call_1_lag_structural_direct = calculate.controlled_direct_effect(t=time,y_coeffi_table=y_coeffi_table_call,
+                                         CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,seed=3,printFlag=T)
+# calculate call's 2-step total effect with CI
+call_2_step = calculate.causaleffect(t=time,tx=c(1,1),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
+                       CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=4,printFlag=T)
+# calculate call's 3-step general effect with CI
+call_3_step_general_101 =calculate.causaleffect(t=time,tx=c(1,0,1),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
+                       CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=4,printFlag=T)
 
+# impulse impact graph at t=600
+call_qlag_effects_part1= simulate.counterfactual_path_singlet(t=600,tx=c(1,rep(0,10)),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,raw_data=raw_data_call,
+                                              CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=1,
+                                              printFlag=T)
+call_qlag_effects_part2 = simulate.counterfactual_path_singlet(t=600,tx=c(0,rep(0,10)),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,raw_data=raw_data_call,
+                                                                   CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=1,
+                                                                   printFlag=T)
+call_effects_vs_qlag=call_qlag_effects_part1-call_qlag_effects_part2
 save(call_contemporaneous,
      call_1_lag,call_1_lag_structural_direct,
      call_2_step,call_3_step_general_101,
      call_effects_vs_qlag,
      file="/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/result_calls.Rdata")
-load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/result_calls.Rdata")
+
 # plots
 {
+  # jump directly to load the data without recalculation!!
+  load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/result_calls.Rdata")
+  address = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs/"
+  
+  
   # call's contemporaneous effect
   par(mar = c(2.5, 5, .5, .5))
-  call_contemporaneous_CIband=plot_simulatedCI(t(call_contemporaneous),probs=c(0.05,0.95),printFlag=F)
+  call_contemporaneous_CIband=plot_simulatedCI(call_contemporaneous,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_contemporaneous_CIband$mean,type="l",ylab="contemporaneous effect (calls)",xlab="",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
   polygon(c(1:708,rev(1:708)),c(call_contemporaneous_CIband$upper,rev(call_contemporaneous_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_contemporaneous_CIband$mean,type="l")
@@ -467,7 +468,7 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
   
   # call's 1-lag effect 
   par(mar = c(2.5, 5, .5, .5))
-  call_1_lag_CIband=plot_simulatedCI(t(call_1_lag),probs=c(0.05,0.95),printFlag=F)
+  call_1_lag_CIband=plot_simulatedCI(call_1_lag,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_1_lag_CIband$mean,type="l",ylab="1-lag effect (calls)",xlab="Date",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
   polygon(c(1:708,rev(1:708)),c(call_1_lag_CIband$upper,rev(call_1_lag_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_1_lag_CIband$mean,type="l")
@@ -513,7 +514,7 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
   
   # call's 1-lag structural direct effect
   par(mar = c(2.5, 5, .5, .5))
-  call_1_lag_structural_direct_CIband = plot_simulatedCI(t(call_1_lag_structural_direct),probs=c(0.05,0.95),printFlag=F)
+  call_1_lag_structural_direct_CIband = plot_simulatedCI(call_1_lag_structural_direct,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_1_lag_structural_direct_CIband$mean,type="l",ylab="1-lag controlled direct effect (calls)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-.7,0.7))
   polygon(c(1:708,rev(1:708)),c(call_1_lag_structural_direct_CIband$upper,rev(call_1_lag_structural_direct_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_1_lag_structural_direct_CIband$mean,type="l")
@@ -525,7 +526,7 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
   
   # call's 2-step total effect
   par(mar = c(2.5, 5, .5, .5))
-  call_2_step_CIband = plot_simulatedCI(t(call_2_step),probs=c(0.05,0.95),printFlag=F)
+  call_2_step_CIband = plot_simulatedCI(call_2_step,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_2_step_CIband$mean,type="l",ylab="2-step total effect (calls)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-2,1))
   polygon(c(1:708,rev(1:708)),c(call_2_step_CIband$upper,rev(call_2_step_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_2_step_CIband$mean,type="l")
@@ -537,7 +538,7 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
   
   # call's 3-step general effect
   par(mar = c(2.5, 5, .5, .5))
-  call_3_step_general_101_CIband = plot_simulatedCI(t(call_3_step_general_101),probs=c(0.05,0.95),printFlag=F)
+  call_3_step_general_101_CIband = plot_simulatedCI(call_3_step_general_101,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_3_step_general_101_CIband$mean,type="l",ylab="3-step general effect (calls)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-2,1))
   polygon(c(1:708,rev(1:708)),c(call_3_step_general_101_CIband$upper,rev(call_3_step_general_101_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_3_step_general_101_CIband$mean,type="l")
