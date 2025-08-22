@@ -428,20 +428,20 @@ call_1_lag = calculate.causaleffect(t=time,tx=c(1,0),y_coeffi_table=y_coeffi_tab
 # calculate call's 2-lag effect with CI (save call_2_lag)
 call_2_lag = calculate.causaleffect(t=time,tx=c(1,0,0),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
                                     CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=2,printFlag=T)
-# calculate call's 3-lag effect with CI (save call_2_lag)
+# calculate call's 3-lag effect with CI (save call_3_lag)
 call_3_lag = calculate.causaleffect(t=time,tx=c(1,0,0,0),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
                                     CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=2,printFlag=T)
-# calculate call's 1-lag structural direct effect with CI
+# calculate call's 1-lag structural effect with CI (save call_1_lag_structural_direct)
 call_1_lag_structural_direct = calculate.controlled_direct_effect(t=time,y_coeffi_table=y_coeffi_table_call,
                                          CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,seed=3,printFlag=T)
-# calculate call's 2-step total effect with CI
+# calculate call's 2-step total effect with CI (save call_2_step)
 call_2_step = calculate.causaleffect(t=time,tx=c(1,1),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
                        CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=4,printFlag=T)
-# calculate call's 3-step general effect with CI
+# calculate call's 3-step general effect with CI (save call_3_step_general_101)
 call_3_step_general_101 =calculate.causaleffect(t=time,tx=c(1,0,1),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
                        CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=4,printFlag=T)
 
-# impulse impact graph at t=600
+# impulse impact graph at t=600 (save call_effects_vs_qlag)
 call_qlag_effects_part1= simulate.counterfactual_path_singlet(t=600,tx=c(1,rep(0,10)),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,raw_data=raw_data_call,
                                               CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=1,
                                               printFlag=T)
@@ -533,7 +533,6 @@ save(call_contemporaneous,
   
   # call's 2-step total effect
   pdf(file=paste(address,"1_lag_controlled_direct_effect_calls.pdf",sep=""),width = 9, height = 6)
-  
   par(mar = c(2.5, 5, .5, .5))
   call_2_step_CIband = plot_simulatedCI(call_2_step,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_2_step_CIband$mean,type="l",ylab="2-step total effect (calls)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-2,1))
