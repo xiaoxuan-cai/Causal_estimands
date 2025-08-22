@@ -13,6 +13,8 @@
 #          old version "GitHub/SSMimpute/helper_multipleimputation.R" -> new version
 #       4. keycontacts_text_totaldegree or keycontacts_text_reciprocity_degree?
 #       5. take a logit transformation on TAM_phone, to make it normally distributed from -infty to +infty
+# Results: 1. SSM modeling fitting results in main paper
+#          2. SSM fitting plots in both main paper and appendix
 source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 1_packages.R")
 source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 2_helper functions.R")
 source("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/helper_causal estimands.R")
@@ -39,7 +41,7 @@ data=data.frame(Date=data_5BT65$Date,negative_total=data_5BT65$negative_total,
 param=list(list(lagged_param=list(variables=colnames(data)[-1],param=rep(3,length(colnames(data)[-1])))))
 data=add_variables_procedures(data,param);
 data=data.frame(intercept=1,data);colnames(data)
-# plots of outcome/exposure/covariates (Figure 3)
+# plots of outcome/exposure/covariates ("raw_950_600.png" used in Figure 3)
 {
   par(mfrow=c(2,2))
   par(mar = c(4, 5, 0.1, 0.5))
@@ -54,9 +56,9 @@ data=data.frame(intercept=1,data);colnames(data)
   text(10,1.06, "d)",cex=2)
 }
 
-##################################################################
-######                     ARIMA                           #######
-##################################################################
+##############################################################################
+######             ARIMA (used in Main paper Table 3)                  #######
+##############################################################################
 formula_y=" negative_total ~ negative_total_1 + keycontacts_call_totaldegree_binary + keycontacts_call_totaldegree_binary_1 + keycontacts_text_reciprocity_degree_binary + keycontacts_text_reciprocity_degree_binary_1+ logit_TAM_phone_1"
 all_var_y=unlist(strsplit(gsub(" ","",formula_y),"\\+|\\~"))
 data_ARIMAreg_y=data[,all_var_y]
@@ -91,7 +93,7 @@ result_ARIMAreg_estimate_y
 #                                         + keycontacts_call_totaldegree_binary
 #                                         + keycontacts_text_reciprocity_degree_binary
 #                                         + negative_total
-# ssm_c model: used in the Main paper Table 2
+# ssm_c model (used in the Main paper Table 2)
 {
   ######################## Part I:  initial guess of ssm structure ########################
   n_variables=5
@@ -156,9 +158,9 @@ result_ARIMAreg_estimate_y
   # keycontacts_text_reciprocity_degree_binary(period2)  -0.7810*   0.3045     (-1.5653,0.0032)   (-1.3778,-0.1843) (-1.2818,-0.2802)
   # negative_total                                       -0.0141    0.0264     (-0.0821,0.0539)   (-0.0659,0.0376)  (-0.0575,0.0293)
 }
-# ssm_c plots: used in the Appendix
+# ssm_c plots (used in the Appendix)
 {  
-  address = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs/"
+  address = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs_appendix/"
   
   # random walk intercept
   pdf(file=paste(address,"ssmc_intercept.pdf",sep=""),width = 12, height = 6)
@@ -241,7 +243,7 @@ result_ARIMAreg_estimate_y
 #                                     + keycontacts_call_totaldegree_binary + keycontacts_call_totaldegree_binary_1
 #                                     + keycontacts_text_reciprocity_degree_binary + keycontacts_text_reciprocity_degree_binary
 #                                     + logit_TAM_phone_1
-# ssm_y model: used in the Main paper Table 2&3
+# ssm_y model (used in the Main paper Tables 2&3)
 {
   ######################## Part I: initial guess of ssm structure ########################
   n_variables=7
@@ -299,9 +301,9 @@ result_ARIMAreg_estimate_y
   # keycontacts_text_reciprocity_degree_binary_1(period2)   -0.724*    0.312      (-1.529,0.08)   (-1.336,-0.113) (-1.238,-0.211)
   # logit_TAM_phone_1                                       -0.012     0.036      (-0.105,0.08)   (-0.083,0.058)  (-0.072,0.047)
 }
-# ssm_y plots: used in the Appendix
+# ssm_y plots (used in the Appendix)
 {
-  address = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs/"
+  address = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs_appendix/"
   # random walk intercept
   pdf(file=paste(address,"ssmy_intercept.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
@@ -423,6 +425,12 @@ call_contemporaneous = calculate.causaleffect(t=time,tx=1,y_coeffi_table=y_coeff
 # calculate call's 1-lag effect with CI (save call_1_lag)
 call_1_lag = calculate.causaleffect(t=time,tx=c(1,0),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
                                     CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=2,printFlag=T)
+# calculate call's 2-lag effect with CI (save call_2_lag)
+call_2_lag = calculate.causaleffect(t=time,tx=c(1,0,0),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
+                                    CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=2,printFlag=T)
+# calculate call's 3-lag effect with CI (save call_2_lag)
+call_3_lag = calculate.causaleffect(t=time,tx=c(1,0,0,0),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
+                                    CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=2,printFlag=T)
 # calculate call's 1-lag structural direct effect with CI
 call_1_lag_structural_direct = calculate.controlled_direct_effect(t=time,y_coeffi_table=y_coeffi_table_call,
                                          CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,seed=3,printFlag=T)
@@ -442,19 +450,19 @@ call_qlag_effects_part2 = simulate.counterfactual_path_singlet(t=600,tx=c(0,rep(
                                                                    printFlag=T)
 call_effects_vs_qlag=call_qlag_effects_part1-call_qlag_effects_part2
 save(call_contemporaneous,
-     call_1_lag,call_1_lag_structural_direct,
+     call_1_lag,call_2_lag,call_3_lag,call_1_lag_structural_direct,
      call_2_step,call_3_step_general_101,
      call_effects_vs_qlag,
-     file="/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/result_calls.Rdata")
+     file="/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/result_calls.Rdata")
 
 # plots
 {
   # jump directly to load the data without recalculation!!
-  load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/result_calls.Rdata")
-  address = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs/"
+  load("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/result_calls.Rdata")
+  address = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs_appendix/"
   
-  
-  # call's contemporaneous effect
+  # call's contemporaneous effect (used in appendix)
+  pdf(file=paste(address,"lag0_calls.pdf",sep=""),width = 9, height = 6)
   par(mar = c(2.5, 5, .5, .5))
   call_contemporaneous_CIband=plot_simulatedCI(call_contemporaneous,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_contemporaneous_CIband$mean,type="l",ylab="contemporaneous effect (calls)",xlab="",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
@@ -465,8 +473,10 @@ save(call_contemporaneous,
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+  dev.off()
   
-  # call's 1-lag effect 
+  # call's 1-lag effect (used in appendix)
+  pdf(file=paste(address,"lag1_calls.pdf",sep=""),width = 9, height = 6)
   par(mar = c(2.5, 5, .5, .5))
   call_1_lag_CIband=plot_simulatedCI(call_1_lag,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_1_lag_CIband$mean,type="l",ylab="1-lag effect (calls)",xlab="Date",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
@@ -477,42 +487,38 @@ save(call_contemporaneous,
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+  dev.off()
   
-  # unused code for plotting call's q-lag effects for q=2,3,4 for all time points
-  # lag2_analytical_calls=list.cbind(lapply(result_alltimepoints_analytical_calls,function(x){x[,3]}))
-  # lag2_CIband_analytical_calls=plot_simulatedCI(t(lag2_analytical_calls),probs=c(0.05,0.95),printFlag=F)
-  # plot(1:708,lag2_CIband_analytical_calls$mean,type="l",ylab="2-lag effect (calls)",xlab="Date",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
-  # polygon(c(1:708,rev(1:708)),c(lag2_CIband_analytical_calls$upper,rev(lag2_CIband_analytical_calls$lower)),col="grey90",border="grey")
-  # points(1:708,lag2_CIband_analytical_calls$mean,type="l")
-  # abline(h=0,lty=3,lwd=2)
-  # legend("bottomright",legend=c("estimate", "95% CI"),
-  #        pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
-  #        bty = "n", # remove the bounder of the legend
-  #        lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
-  # 
-  # lag3_analytical_calls=list.cbind(lapply(result_alltimepoints_analytical_calls,function(x){x[,4]}))
-  # lag3_CIband_analytical_calls=plot_simulatedCI(t(lag3_analytical_calls),probs=c(0.05,0.95),printFlag=F)
-  # plot(1:708,lag3_CIband_analytical_calls$mean,type="l",ylab="3-lag effect (calls)",xlab="Date",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
-  # polygon(c(1:708,rev(1:708)),c(lag3_CIband_analytical_calls$upper,rev(lag3_CIband_analytical_calls$lower)),col="grey90",border="grey")
-  # points(1:708,lag3_CIband_analytical_calls$mean,type="l")
-  # abline(h=0,lty=3,lwd=2)
-  # legend("bottomright",legend=c("estimate", "95% CI"),
-  #        pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
-  #        bty = "n", # remove the bounder of the legend
-  #        lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
-  # 
-  # lag4_analytical_calls=list.cbind(lapply(result_alltimepoints_analytical_calls,function(x){x[,5]}))
-  # lag4_CIband_analytical_calls=plot_simulatedCI(t(lag4_analytical_calls),probs=c(0.05,0.95),printFlag=F)
-  # plot(1:708,lag4_CIband_analytical_calls$mean,type="l",ylab="4-lag effect (texts)",xlab="Date",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
-  # polygon(c(1:708,rev(1:708)),c(lag4_CIband_analytical_calls$upper,rev(lag4_CIband_analytical_calls$lower)),col="grey90",border="grey")
-  # points(1:708,lag4_CIband_analytical$mean,type="l")
-  # abline(h=0,lty=3,lwd=2)
-  # legend("bottomright",legend=c("estimate", "95% CI"),
-  #        pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
-  #        bty = "n", # remove the bounder of the legend
-  #        lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+  # call's 2-lag effect (used in appendix)
+  pdf(file=paste(address,"lag2_calls.pdf",sep=""),width = 9, height = 6)
+  par(mar = c(2.5, 5, .5, .5))
+  call_2_lag_CIband=plot_simulatedCI(call_2_lag,probs=c(0.05,0.95),printFlag=F)
+  plot(1:708,call_2_lag_CIband$mean,type="l",ylab="2-lag effect (calls)",xlab="Date",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
+  polygon(c(1:708,rev(1:708)),c(call_2_lag_CIband$upper,rev(call_2_lag_CIband$lower)),col="grey90",border="grey")
+  points(1:708,call_2_lag_CIband$mean,type="l")
+  abline(h=0,lty=3,lwd=2)
+  legend("bottomright",legend=c("estimate", "95% CI"),
+         pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
+         bty = "n", # remove the bounder of the legend
+         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+  dev.off()
+  
+  # call's 3-lag effect (used in appendix)
+  pdf(file=paste(address,"lag3_calls.pdf",sep=""),width = 9, height = 6)
+  par(mar = c(2.5, 5, .5, .5))
+  call_3_lag_CIband=plot_simulatedCI(call_3_lag,probs=c(0.05,0.95),printFlag=F)
+  plot(1:708,call_3_lag_CIband$mean,type="l",ylab="3-lag effect (calls)",xlab="Date",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
+  polygon(c(1:708,rev(1:708)),c(call_3_lag_CIband$upper,rev(call_3_lag_CIband$lower)),col="grey90",border="grey")
+  points(1:708,call_3_lag_CIband$mean,type="l")
+  abline(h=0,lty=3,lwd=2)
+  legend("bottomright",legend=c("estimate", "95% CI"),
+         pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
+         bty = "n", # remove the bounder of the legend
+         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+  dev.off()
   
   # call's 1-lag structural direct effect
+  pdf(file=paste(address,"1_lag_controlled_direct_effect_calls.pdf",sep=""),width = 9, height = 6)
   par(mar = c(2.5, 5, .5, .5))
   call_1_lag_structural_direct_CIband = plot_simulatedCI(call_1_lag_structural_direct,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_1_lag_structural_direct_CIband$mean,type="l",ylab="1-lag controlled direct effect (calls)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-.7,0.7))
@@ -523,8 +529,11 @@ save(call_contemporaneous,
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+  dev.off()
   
   # call's 2-step total effect
+  pdf(file=paste(address,"1_lag_controlled_direct_effect_calls.pdf",sep=""),width = 9, height = 6)
+  
   par(mar = c(2.5, 5, .5, .5))
   call_2_step_CIband = plot_simulatedCI(call_2_step,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_2_step_CIband$mean,type="l",ylab="2-step total effect (calls)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-2,1))
