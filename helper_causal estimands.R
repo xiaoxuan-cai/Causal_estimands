@@ -421,7 +421,7 @@ calculate.controlled_direct_effect=function(t,y_coeffi_table,
     cat(blue("             when CI=T, return a matrix with rows representing all time points and columns representing n_sim.\n"))
     cat(blue(" =================================================================================================== \n"))
   }
-  if(!all(is.numeric(t) & t %% 1 == 0 & t>0 & t<=nrow(y_coeffi_table) & t<=nrow(c_coeffi_table))){stop("Chosen time point(s) to be a propriate positive integer between [1,T].")}
+  if(!all(is.numeric(t) & t %% 1 == 0 & t>0 & t<=nrow(y_coeffi_table))){stop("Chosen time point(s) to be a propriate positive integer between [1,T].")}
   if(!is.data.frame(y_coeffi_table)){stop("y_coeffi_table should be data.frame.")}
   if(!all(c("(Intercept)","y_1","x","x_1","c") %in% colnames(y_coeffi_table))){stop("Colum names for y_coeffi_table should be: (Intercept), y_1, x, x_1, c.")}
   if(CI){
