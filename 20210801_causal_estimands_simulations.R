@@ -5,6 +5,8 @@
 #       Previously, we included only stationary-case simulations to test the algorithm.
 #       These results were not presented in the paper or appendix.
 #       In response to reviewer feedback, we added a new simulation example for the non-stationary case, reflecting the structure of the real data application.
+# Results: 1. Various causal estimands for appendix, simulation section
+#          2. Impulse impact plot and Step response plot for for appendix, simulation section
 
 # Structure:
 # Part I (Stationary Case):
@@ -346,11 +348,11 @@ estimand_qstep_total_ture=simulate.counterfactual_path_singlet(t=500,tx=rep(1,7)
 # plots
 library(rlist)
 load("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/simu_causal_nonsta.Rdata")
-address="/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graph_simu/"
+address_appendix = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs_appendix/"
 
 contemporaneous_summary=data.frame(mean=rowMeans(contemporaneous),t(apply(contemporaneous,1,quantile,probs=c(0.025,0.975))))
 colnames(contemporaneous_summary)=c("mean","2.5%","97.5%")
-pdf(file=paste(address,"contemporaneous.pdf",sep=""),width=11,height=8)
+pdf(file=paste(address_appendix,"contemp_simu.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
 plot(1:1000,contemporaneous_summary$mean,ylim=c(-7,-1),type="l",
      bty="n",cex.lab=3,cex.axis=3,
@@ -368,7 +370,7 @@ dev.off()
 
 lag1_summary=data.frame(mean=rowMeans(lag1[-1,]),t(apply(lag1[-1,],1,quantile,probs=c(0.025,0.975))))
 colnames(lag1_summary)=c("mean","2.5%","97.5%")
-pdf(file=paste(address,"lag1.pdf",sep=""),width=11,height=8)
+pdf(file=paste(address_appendix,"lag1_simu.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
 plot(2:1000,lag1_summary$mean,ylim=c(-7,-1),type="l",
      bty="n",cex.lab=3,cex.axis=3,
@@ -384,7 +386,7 @@ dev.off()
 
 lag2_summary=data.frame(mean=rowMeans(lag2[-c(1:2),]),t(apply(lag2[-c(1:2),],1,quantile,probs=c(0.025,0.975))))
 colnames(lag2_summary)=c("mean","2.5%","97.5%")
-pdf(file=paste(address,"lag2.pdf",sep=""),width=11,height=8)
+pdf(file=paste(address_appendix,"lag2_simu.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
 plot(3:1000,lag2_summary$mean,ylim=c(-7,-1),type="l",
      bty="n",cex.lab=3,cex.axis=3,
@@ -400,7 +402,7 @@ dev.off()
 
 lag3_summary=data.frame(mean=rowMeans(lag3[-c(1:3),]),t(apply(lag3[-c(1:3),],1,quantile,probs=c(0.025,0.975))))
 colnames(lag3_summary)=c("mean","2.5%","97.5%")
-pdf(file=paste(address,"lag3.pdf",sep=""),width=11,height=8)
+pdf(file=paste(address_appendix,"lag3_simu.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
 plot(4:1000,lag3_summary$mean,ylim=c(-7,-1),type="l",
      bty="n",cex.lab=3,cex.axis=3,
@@ -416,7 +418,7 @@ dev.off()
 
 lag4_summary=data.frame(mean=rowMeans(lag4[-c(1:4),]),t(apply(lag4[-c(1:4),],1,quantile,probs=c(0.025,0.975))))
 colnames(lag4_summary)=c("mean","2.5%","97.5%")
-pdf(file=paste(address,"lag4.pdf",sep=""),width=11,height=8)
+pdf(file=paste(address_appendix,"lag4_simu.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
 plot(5:1000,lag4_summary$mean,ylim=c(-7,-1),type="l",
      bty="n",cex.lab=3,cex.axis=3,
@@ -432,7 +434,7 @@ dev.off()
 
 estimand_qlag_summary=data.frame(mean=rowMeans(estimand_qlag),t(apply(estimand_qlag,1,quantile,probs=c(0.025,0.975))))
 colnames(estimand_qlag_summary)=c("mean","2.5%","97.5%")
-pdf(file=paste(address,"estimand_qlag.pdf",sep=""),width=11,height=8)
+pdf(file=paste(address_appendix,"impulse_impact_simu.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
 nlag=7
 plot(1:nlag,estimand_qlag_summary$mean[1:nlag],type="l",
@@ -449,7 +451,7 @@ dev.off()
 
 estimand_qstep_total_summary=data.frame(mean=rowMeans(estimand_qstep_total),t(apply(estimand_qstep_total,1,quantile,probs=c(0.025,0.975))))
 colnames(estimand_qstep_total_summary)=c("mean","2.5%","97.5%")
-pdf(file=paste(address,"estimand_qstep.pdf",sep=""),width=11,height=8)
+pdf(file=paste(address_appendix,"step_response_simu.pdf",sep=""),width=11,height=8)
 par(mar = c(5, 6, 1, 1))
 nstep=7
 plot(1:nstep,estimand_qstep_total_summary$mean[1:nstep],type="l",
