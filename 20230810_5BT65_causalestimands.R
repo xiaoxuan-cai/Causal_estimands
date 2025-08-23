@@ -1,6 +1,6 @@
 # File: 20230810_5BT65_causalestimands.R
 # Date: 2023.08.10
-# Updated: 2025.07.15
+# Updated: 2025.08.23
 # This file is created for the real data analysis of the paper "Causal estimands and identification of time-varying effects in non-stationary time series from N-of-1 mobile device data"
 # Goal: fit time-varying SSM model for both outcome and covariate -> to calculate various causal estimands
 # Note: 1. the methodology of the paper only applies to binary exposure and # obs on level 3 is too few for proper inference
@@ -15,6 +15,9 @@
 #       5. take a logit transformation on TAM_phone, to make it normally distributed from -infty to +infty
 # Results: 1. SSM modeling fitting results in main paper
 #          2. SSM fitting plots in both main paper and appendix
+#          3. Various causal estimands for both main paper and appendix
+#          4. Impulse impact plot and Step response plot for main paper
+#          5. test positivity for main paper
 source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 1_packages.R")
 source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 2_helper functions.R")
 source("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/helper_causal estimands.R")
@@ -87,9 +90,9 @@ result_ARIMAreg_estimate_y
 # keycontacts_text_reciprocity_degree_binary_1 "-0.285"   "0.194"    "(-0.785,0.214)" "(-0.666,0.095)" "(-0.604,0.034)" 
 # logit_TAM_phone_1                            "-0.018"   "0.033"    "(-0.103,0.067)" "(-0.083,0.046)" "(-0.073,0.036)"
 
-##################################################################
-######          SSM ignore modeling of covariates            #####
-##################################################################
+###############################################################################################################
+######          SSM ignore modeling of covariates  (used in Main paper Table 2&3 and Appendix)            #####
+###############################################################################################################
 # This paper cannot handle missing data for both covariates and outcome
 #   thus, we use SSM ignore temporarily
 # covariate regression: logit_TAM_phone ~ intercept + logit_TAM_phone_1  
@@ -410,9 +413,9 @@ result_ARIMAreg_estimate_y
   dev.off()
 }
 
-############################################################################
-######     simulate/compute causal estimands of calls with CI          #####
-############################################################################
+##############################################################################################
+######     simulate/compute causal estimands of calls with CI (used in Appendix)         #####
+##############################################################################################
 y_coeffi_table_call=as.data.frame(ssm_y$out_smooth$s);colnames(y_coeffi_table_call)[c(1:4,7)]=c("(Intercept)","y_1","x","x_1","c");head(y_coeffi_table_call)
 c_coeffi_table_call=as.data.frame(ssm_c$out_smooth$s);colnames(c_coeffi_table_call)[c(1,2,3,5)]=c("(Intercept)","c_1","x_1","y_1");head(c_coeffi_table_call)
 raw_data_call=data[,c(2,3,4,6)];colnames(raw_data_call)=c("Date","y","x","c");head(raw_data_call)
@@ -574,10 +577,9 @@ legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Tru
   dev.off()
 }
 
-
-#########################################################################
-######          simulate causal estimands of texts with CI          #####
-#########################################################################
+##############################################################################################################
+######          simulate causal estimands of texts with CI  (used in the Main Paper and Appendix)        #####
+##############################################################################################################
 y_coeffi_table_text=as.data.frame(ssm_y$out_smooth$s);colnames(y_coeffi_table_text)[c(1:2,5:7)]=c("(Intercept)","y_1","x","x_1","c");head(y_coeffi_table_text)
 c_coeffi_table_text=as.data.frame(ssm_c$out_smooth$s);colnames(c_coeffi_table_text)[c(1,2,4,5)]=c("(Intercept)","c_1","x_1","y_1");head(c_coeffi_table_text)
 raw_data_text=data[,c(2,3,5,7)];colnames(raw_data_text)=c("Date","y","x","c");head(raw_data_text)
@@ -608,8 +610,6 @@ text_2_step_general_101 = calculate.causaleffect(t=time,tx=c(1,0,1),y_coeffi_tab
 # calculate text's 3-step general effect with CI
 text_3_step_general_0101 = calculate.causaleffect(t=time,tx=c(0,1,0,1),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,
                                                   CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=6,printFlag=T)
-
-
 # impulse impact graph at t=600 (save text_effects_vs_qlag)
 text_qlag_effects_part1 = simulate.counterfactual_path_singlet(t=600,tx=c(1,rep(0,10)),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,raw_data=raw_data_text,
                                                               CI=T,n_sim=10000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=1,
@@ -660,7 +660,7 @@ legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
        bty = "n", # remove the bounder of the legend
        lwd = c(NA,NA,NA),cex=1.5)
 
-# plots
+# plots (used in the Main Paper & Appendix)
 {
   load("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/result_texts.Rdata")
   # text's contemporaneous effect
@@ -827,25 +827,16 @@ legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
   dev.off()
 }
 
-########################################################################
-######         personalized intervention effect (text)             #####
-########################################################################
-t=600;n_sim=1000
-set.seed(1)
-qstep1001001=simulate.counterfactual_singlet(t,tx=c(1,0,0,1,0,0,1,rep(0,10)),y_coeffi_table,c_coeffi_table,raw_data,printFlag=T)
-set.seed(1)
-qstep0101010=simulate.counterfactual_singlet(t,tx=c(0,1,0,1,0,1,0,rep(0,10)),y_coeffi_table,c_coeffi_table,raw_data,printFlag=T)
-set.seed(1)
-qstep1110000=simulate.counterfactual_singlet(t,tx=c(1,1,1,0,0,0,0,rep(0,10)),y_coeffi_table,c_coeffi_table,raw_data,printFlag=T)
-set.seed(1)
-qstep0000000=simulate.counterfactual_singlet(t,tx=c(0,0,0,0,0,0,0,rep(0,10)),y_coeffi_table,c_coeffi_table,raw_data,printFlag=T)
+####################################################################################################
+######         personalized intervention effect for texts (used in the Main Paper)             #####
+####################################################################################################
+qstep1001001 = simulate.counterfactual_path_singlet(t=600,tx=c(1,0,0,1,0,0,1,rep(0,10)),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,raw_data=raw_data_text,CI=F)
+qstep0101010 = simulate.counterfactual_path_singlet(t=600,tx=c(0,1,0,1,0,1,0,rep(0,10)),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,raw_data=raw_data_text,CI=F)
+qstep1110000 = simulate.counterfactual_path_singlet(t=600,tx=c(1,1,1,0,0,0,0,rep(0,10)),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,raw_data=raw_data_text,CI=F)
+qstep0000000 = simulate.counterfactual_path_singlet(t=600,tx=c(0,0,0,0,0,0,0,rep(0,10)),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,raw_data=raw_data_text,CI=F)
 
-qstep1001001_CIband_simulated_600=plot_simulatedCI(qstep1001001-qstep0000000,probs=c(0.05,0.95),printFlag=F)
-qstep0101010_CIband_simulated_600=plot_simulatedCI(qstep0101010-qstep0000000,probs=c(0.05,0.95),printFlag=F)
-qstep1110000_CIband_simulated_600=plot_simulatedCI(qstep1110000-qstep0000000,probs=c(0.05,0.95),printFlag=F)
-
-# Figure 6b
-pdf(file = paste(location,"optimal_tx.pdf",sep=""),
+# Figure 6b  (used in the Main Paper)
+pdf(file = paste(address_main,"optimal_tx.pdf",sep=""),
     width = 10, # The width of the plot in inches
     height = 6) # The height of the plot in inches
 par(mar = c(5, 5, 1.5, .1))
@@ -869,9 +860,9 @@ legend("bottomright",legend=c("tx=(1,1,1,0,0,0,0)","tx=(0,1,0,1,0,1,0)","tx=(1,0
        lwd = c(1,1,1), pt.bg = c(NA,"grey90"),cex=2.5)
 dev.off()
 
-##############################################################
-######         test positivity assumption                #####
-##############################################################
+#################################################################################################
+######         test positivity assumption for texts (used in the Main Paper)                #####
+#################################################################################################
 positivity_calls=test.positivity(tx="keycontacts_call_totaldegree_merged",data=data[,c(1:7)],length=10)
 positivity_texts=test.positivity(tx="keycontacts_text_reciprocity_degree_merged",data=data[,c(1:7)],length=10)
 
@@ -880,8 +871,4 @@ nrow(positivity_texts$details[[7]][rowSums(positivity_texts$details[[7]][,-8])==
 par(mar = c(5, 5, 2.5, 0.5))
 barplot(height=positivity_calls$percentage,names=as.character(1:10),ylab="positivity % (calls)",xlab="exposure duration (days)",type="h",bty="n",cex.axis=1.5,cex.lab=2,las=1)
 barplot(height=positivity_texts$percentage,names=as.character(1:10),ylab="positivity % (texts)",xlab="exposure duration (days)",type="h",bty="n",cex.axis=1.5,cex.lab=2,las=1)
-
-
-
-
 
