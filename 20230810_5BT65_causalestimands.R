@@ -23,6 +23,9 @@ source("/Users/xiaoxuancai/Documents/GitHub/SSMimpute/helper_multipleimputation.
 load("/Users/xiaoxuancai/Documents/analysis/subject_5BT65/Data/processed/combined_all_5BT65.RData")
 library(data.table) # for simulate.counterfactual_path_singlet to combine items of list
 library(rlist)
+address_main = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs_main/"
+address_appendix = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs_appendix/"
+
 # -------------------------------------------------------------------- #
 #             Organize and add variables needed for analysis           #
 # -------------------------------------------------------------------- #
@@ -160,10 +163,8 @@ result_ARIMAreg_estimate_y
 }
 # ssm_c plots (used in the Appendix)
 {  
-  address = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs_appendix/"
-  
   # random walk intercept
-  pdf(file=paste(address,"ssmc_intercept.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmc_intercept.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   plot(1:708,ssm_c$out_filter$m[,1],type="l",ylab=expression(paste(mu["0,t"]," (intercept)")),xlab="Time (days)",bty="n",cex.lab=2,cex.axis=2,ylim=c(-5,5))
   sd=unlist(lapply(1:708,function(i){sqrt(diag(dlmSvd2var(ssm_c$out_filter$U.C[[i]],ssm_c$out_filter$D.C[i,]))[1])}))
@@ -177,7 +178,7 @@ result_ARIMAreg_estimate_y
   dev.off()
   
   # 3 period autocorrelation
-  pdf(file=paste(address,"ssmc_rho.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmc_rho.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   a=cpt.mean(ssm_c$out_filter$m[,2],penalty="Manual",Q=4,method="BinSeg")
   plot(1:708,ssm_c$out_filter$m[,2],type="l",ylab=expression(paste(rho["pm,t"]," (auto-correlation)")),xlab="Time (days)",bty="n",cex.lab=2,cex.axis=2)
@@ -195,7 +196,7 @@ result_ARIMAreg_estimate_y
   dev.off()
   
   # time-invariant coeffi for degree of calls with keycontacts
-  pdf(file=paste(address,"ssmc_calls.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmc_calls.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   plot(1:708,ssm_c$out_filter$m[,3],type="l",ylab=expression(paste(mu["1,t"]," (degree of calls)")),xlab="Time (days)",bty="n",cex.lab=2,cex.axis=2,ylim=c(-1,1))
   sd=unlist(lapply(1:708,function(i){sqrt(diag(dlmSvd2var(ssm_c$out_filter$U.C[[i]],ssm_c$out_filter$D.C[i,]))[3])}))
@@ -209,7 +210,7 @@ result_ARIMAreg_estimate_y
   dev.off()
   
   # periodic-stable coeff for degree of texts with keycontacts
-  pdf(file=paste(address,"ssmc_texts.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmc_texts.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   a=cpt.mean(ssm_c$out_filter$m[,4],penalty="Manual",Q=2,method="BinSeg")
   plot(1:708,ssm_c$out_filter$m[,4],type="l",ylab=expression(paste(mu["2,t"]," (degree of texts)")),xlab="Time (days)",bty="n",cex.lab=2,cex.axis=2, ylim=c(-5,1))
@@ -226,7 +227,7 @@ result_ARIMAreg_estimate_y
   dev.off()
   
   # time-invariant coeffi for negative mood
-  pdf(file=paste(address,"ssmc_negative.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmc_negative.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   plot(1:708,ssm_c$out_filter$m[,5],type="l",ylab=expression(paste(mu["3,t"]," (negative mood)")),xlab="Time (days)",bty="n",cex.lab=2,cex.axis=2,ylim=c(-0.7,0.5))
   sd=unlist(lapply(1:708,function(i){sqrt(diag(dlmSvd2var(ssm_c$out_filter$U.C[[i]],ssm_c$out_filter$D.C[i,]))[5])}))
@@ -303,9 +304,8 @@ result_ARIMAreg_estimate_y
 }
 # ssm_y plots (used in the Appendix)
 {
-  address = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs_appendix/"
   # random walk intercept
-  pdf(file=paste(address,"ssmy_intercept.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmy_intercept.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   plot(1:708,ssm_y$out_filter$m[,1],type="l",ylab=expression(paste(beta["0,t"]," (intercept)")),xlab="Time (days)" ,bty="n",cex.lab=2,cex.axis=2, ylim=c(-3,8))
   sd=unlist(lapply(1:708,function(i){sqrt(diag(dlmSvd2var(ssm_y$out_filter$U.C[[i]],ssm_y$out_filter$D.C[i,]))[1])}))
@@ -319,7 +319,7 @@ result_ARIMAreg_estimate_y
   dev.off()
   
   # time-invariant autocorrelation
-  pdf(file=paste(address,"ssmy_rho.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmy_rho.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   plot(1:708,ssm_y$out_filter$m[,2],type="l",ylab=expression(paste(rho[t]," (auto-correlation)")),xlab="Time (days)" ,bty="n",cex.lab=2,cex.axis=2, ylim=c(0.0,1))
   sd=unlist(lapply(1:708,function(i){sqrt(diag(dlmSvd2var(ssm_y$out_filter$U.C[[i]],ssm_y$out_filter$D.C[i,]))[2])}))
@@ -333,7 +333,7 @@ result_ARIMAreg_estimate_y
   dev.off()
   
   # time-invariant coeffi for degree of calls with keycontacts
-  pdf(file=paste(address,"ssmy_calls.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmy_calls.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   plot(1:708,ssm_y$out_filter$m[,3],type="l",ylab=expression(paste(beta["11,t"]," (degree of calls)")),xlab="Time (days)" ,bty="n",cex.lab=2,cex.axis=2, ylim=c(-1,1))
   sd=unlist(lapply(1:708,function(i){sqrt(diag(dlmSvd2var(ssm_y$out_filter$U.C[[i]],ssm_y$out_filter$D.C[i,]))[3])}))
@@ -347,7 +347,7 @@ result_ARIMAreg_estimate_y
   dev.off()
   
   # time-invariant coeffi for degree of calls yesterday with keycontacts
-  pdf(file=paste(address,"ssmy_calls2.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmy_calls2.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   plot(1:708,ssm_y$out_filter$m[,4],type="l",ylab=expression(paste(beta["12,t"]," (degree of calls previous day)")),xlab="Time (days)" ,bty="n",cex.lab=2,cex.axis=2, ylim=c(-1,1))
   sd=unlist(lapply(1:708,function(i){sqrt(diag(dlmSvd2var(ssm_y$out_filter$U.C[[i]],ssm_y$out_filter$D.C[i,]))[4])}))
@@ -361,7 +361,7 @@ result_ARIMAreg_estimate_y
   dev.off()
   
   # periodic-stable coeff for degree of texts
-  pdf(file=paste(address,"ssmy_texts.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmy_texts.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   a=cpt.mean(ssm_y$out_filter$m[,5],penalty="Manual",Q=2,method="BinSeg")
   plot(1:708,ssm_y$out_filter$m[,5],type="l",ylab=expression(paste(beta["21,t"]," (degree of texts)")),xlab="Time (days)" ,bty="n",cex.lab=2,cex.axis=2, ylim=c(-4,1))
@@ -379,7 +379,7 @@ result_ARIMAreg_estimate_y
   dev.off()
   
   # time-invariant coeffi for degree of texts yesterday
-  pdf(file=paste(address,"ssmy_texts2.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmy_texts2.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   a=cpt.mean(ssm_y$out_filter$m[,6],penalty="Manual",Q=1,method="BinSeg")
   plot(1:708,ssm_y$out_filter$m[,6],type="l",ylab=expression(paste(beta["22,t"]," (degree of outgoing texts previous day)")),xlab="Time (days)" ,bty="n",cex.lab=1.5,cex.axis=2, ylim=c(-3,2))
@@ -396,7 +396,7 @@ result_ARIMAreg_estimate_y
   dev.off()
   
   # time-invariant coeffi for physical activity
-  pdf(file=paste(address,"ssmy_pa.pdf",sep=""),width = 12, height = 6)
+  pdf(file=paste(address_appendix,"ssmy_pa.pdf",sep=""),width = 12, height = 6)
   par(mar = c(5, 5, .5, .5))
   plot(1:708,ssm_y$out_filter$m[,7],type="l",ylab=expression(paste(beta["PA,t"]," (daily physical activity)")),xlab="Time (days)" ,bty="n",cex.lab=2,cex.axis=2, ylim=c(-1,1))
   sd=unlist(lapply(1:708,function(i){sqrt(diag(dlmSvd2var(ssm_y$out_filter$U.C[[i]],ssm_y$out_filter$D.C[i,]))[7])}))
@@ -435,34 +435,48 @@ call_3_lag = calculate.causaleffect(t=time,tx=c(1,0,0,0),y_coeffi_table=y_coeffi
 call_1_lag_structural_direct = calculate.controlled_direct_effect(t=time,y_coeffi_table=y_coeffi_table_call,
                                          CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,seed=3,printFlag=T)
 # calculate call's 2-step total effect with CI (save call_2_step)
-call_2_step = calculate.causaleffect(t=time,tx=c(1,1),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
+call_1_step = calculate.causaleffect(t=time,tx=c(1,1),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
                        CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=4,printFlag=T)
 # calculate call's 3-step general effect with CI (save call_3_step_general_101)
-call_3_step_general_101 =calculate.causaleffect(t=time,tx=c(1,0,1),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
+call_2_step_general_101 = calculate.causaleffect(t=time,tx=c(1,0,1),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,
                        CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=4,printFlag=T)
 
-# impulse impact graph at t=600 (save call_effects_vs_qlag)
-call_qlag_effects_part1= simulate.counterfactual_path_singlet(t=600,tx=c(1,rep(0,10)),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,raw_data=raw_data_call,
-                                              CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=1,
-                                              printFlag=T)
-call_qlag_effects_part2 = simulate.counterfactual_path_singlet(t=600,tx=c(0,rep(0,10)),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,raw_data=raw_data_call,
-                                                                   CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=1,
-                                                                   printFlag=T)
-call_effects_vs_qlag=call_qlag_effects_part1-call_qlag_effects_part2
+# impulse impact graph at t=600 without CI (save call_effects_vs_qlag)
+call_qlag_effects_part1 = simulate.counterfactual_path_singlet(t=600,tx=c(1,rep(0,10)),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,raw_data=raw_data_call,CI=F)
+call_qlag_effects_part2 = simulate.counterfactual_path_singlet(t=600,tx=c(0,rep(0,10)),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,raw_data=raw_data_call,CI=F)
+# Note: tried n_sim=1000 and n_sim=10000 before, results not accurate enough -> end up useing n_sim
+# call_qlag_effects_part1 = simulate.counterfactual_path_singlet(t=600,tx=c(1,rep(0,10)),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,raw_data=raw_data_call,
+#                                               CI=T,n_sim=100000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=1,printFlag=T)
+# call_qlag_effects_part2 = simulate.counterfactual_path_singlet(t=600,tx=c(0,rep(0,10)),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,raw_data=raw_data_call,
+#                                               CI=T,n_sim=100000,y_coeffi_var_table=y_coeffi_var_table_call,c_coeffi_var_table=c_coeffi_var_table_call,seed=1,printFlag=T)
+call_effects_vs_qlag = call_qlag_effects_part1-call_qlag_effects_part2
 save(call_contemporaneous,
      call_1_lag,call_2_lag,call_3_lag,call_1_lag_structural_direct,
-     call_2_step,call_3_step_general_101,
+     call_1_step,call_2_step_general_101,
      call_effects_vs_qlag,
      file="/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/result_calls.Rdata")
 
-# plots
+# compare results from analytical solution with CI, Monte Carlo simulation without CI, and true value (not used, just for checking)
+par(mfrow=c(1,1),mar=c(4, 4, 2, 0.5))
+plot(0:10,call_effects_vs_qlag,main="Analytical vs Monte Carlo vs Ture",ylab="q-lag effect",xlab="#lags",cex=1.5,cex.lab=1.5,cex.axis= 1.5, bty="n",col="black",pch=5)
+points(0:3,c(rowMeans(call_contemporaneous)[600],rowMeans(call_1_lag)[600],rowMeans(call_2_lag)[600],rowMeans(call_3_lag)[600]),col="blue",cex=1.5,pch=16)
+points(0:3,c(calculate.causaleffect(t=600,tx=1,y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,CI=F),
+             calculate.causaleffect(t=600,tx=c(1,0),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,CI=F),
+             calculate.causaleffect(t=600,tx=c(1,0,0),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,CI=F),
+             calculate.causaleffect(t=600,tx=c(1,0,0,0),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,CI=F)),
+       col="red",pch=15,cex=1.5)
+legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Truth"),
+       pch = c(5,2,15), lty=c(1,1,1), col=c("black","blue","red"),
+       bty = "n", # remove the bounder of the legend
+       lwd = c(NA,NA,NA),cex=1.5)
+
+# plots (used in the Appendix)
 {
   # jump directly to load the data without recalculation!!
   load("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/result_calls.Rdata")
-  address = "/Users/xiaoxuancai/Dropbox/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands for time series data/Graphs_appendix/"
-  
+
   # call's contemporaneous effect (used in appendix)
-  pdf(file=paste(address,"lag0_calls.pdf",sep=""),width = 9, height = 6)
+  pdf(file=paste(address_appendix,"contemp_calls.pdf",sep=""),width = 9, height = 6)
   par(mar = c(2.5, 5, .5, .5))
   call_contemporaneous_CIband=plot_simulatedCI(call_contemporaneous,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_contemporaneous_CIband$mean,type="l",ylab="contemporaneous effect (calls)",xlab="",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
@@ -476,7 +490,7 @@ save(call_contemporaneous,
   dev.off()
   
   # call's 1-lag effect (used in appendix)
-  pdf(file=paste(address,"lag1_calls.pdf",sep=""),width = 9, height = 6)
+  pdf(file=paste(address_appendix,"lag1_calls.pdf",sep=""),width = 9, height = 6)
   par(mar = c(2.5, 5, .5, .5))
   call_1_lag_CIband=plot_simulatedCI(call_1_lag,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_1_lag_CIband$mean,type="l",ylab="1-lag effect (calls)",xlab="Date",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
@@ -490,7 +504,7 @@ save(call_contemporaneous,
   dev.off()
   
   # call's 2-lag effect (used in appendix)
-  pdf(file=paste(address,"lag2_calls.pdf",sep=""),width = 9, height = 6)
+  pdf(file=paste(address_appendix,"lag2_calls.pdf",sep=""),width = 9, height = 6)
   par(mar = c(2.5, 5, .5, .5))
   call_2_lag_CIband=plot_simulatedCI(call_2_lag,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_2_lag_CIband$mean,type="l",ylab="2-lag effect (calls)",xlab="Date",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
@@ -504,7 +518,7 @@ save(call_contemporaneous,
   dev.off()
   
   # call's 3-lag effect (used in appendix)
-  pdf(file=paste(address,"lag3_calls.pdf",sep=""),width = 9, height = 6)
+  pdf(file=paste(address_appendix,"lag3_calls.pdf",sep=""),width = 9, height = 6)
   par(mar = c(2.5, 5, .5, .5))
   call_3_lag_CIband=plot_simulatedCI(call_3_lag,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,call_3_lag_CIband$mean,type="l",ylab="3-lag effect (calls)",xlab="Date",bty="n", cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
@@ -518,10 +532,10 @@ save(call_contemporaneous,
   dev.off()
   
   # call's 1-lag structural direct effect
-  pdf(file=paste(address,"1_lag_controlled_direct_effect_calls.pdf",sep=""),width = 9, height = 6)
+  pdf(file=paste(address_appendix,"lag1_controlled_direct_effect_calls.pdf",sep=""),width = 9, height = 6)
   par(mar = c(2.5, 5, .5, .5))
   call_1_lag_structural_direct_CIband = plot_simulatedCI(call_1_lag_structural_direct,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_1_lag_structural_direct_CIband$mean,type="l",ylab="1-lag controlled direct effect (calls)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-.7,0.7))
+  plot(1:708,call_1_lag_structural_direct_CIband$mean,type="l",ylab="1-lag controlled direct effect (calls)",xlab="# lags",bty="n",cex.axis=2,cex.lab=2,ylim=c(-.7,0.7))
   polygon(c(1:708,rev(1:708)),c(call_1_lag_structural_direct_CIband$upper,rev(call_1_lag_structural_direct_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_1_lag_structural_direct_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -532,109 +546,131 @@ save(call_contemporaneous,
   dev.off()
   
   # call's 2-step total effect
-  pdf(file=paste(address,"1_lag_controlled_direct_effect_calls.pdf",sep=""),width = 9, height = 6)
+  pdf(file=paste(address_appendix,"step1_total_calls.pdf",sep=""),width = 9, height = 6)
   par(mar = c(2.5, 5, .5, .5))
-  call_2_step_CIband = plot_simulatedCI(call_2_step,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_2_step_CIband$mean,type="l",ylab="2-step total effect (calls)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-2,1))
-  polygon(c(1:708,rev(1:708)),c(call_2_step_CIband$upper,rev(call_2_step_CIband$lower)),col="grey90",border="grey")
-  points(1:708,call_2_step_CIband$mean,type="l")
+  call_1_step_CIband = plot_simulatedCI(call_1_step,probs=c(0.05,0.95),printFlag=F)
+  plot(1:708,call_1_step_CIband$mean,type="l",ylab="1-step total effect (calls)",xlab="# lags",bty="n",cex.axis=2,cex.lab=2,ylim=c(-2,1))
+  polygon(c(1:708,rev(1:708)),c(call_1_step_CIband$upper,rev(call_1_step_CIband$lower)),col="grey90",border="grey")
+  points(1:708,call_1_step_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+  dev.off()
   
   # call's 3-step general effect
+  pdf(file=paste(address_appendix,"step2_general_101_calls.pdf",sep=""),width = 9, height = 6)
   par(mar = c(2.5, 5, .5, .5))
-  call_3_step_general_101_CIband = plot_simulatedCI(call_3_step_general_101,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_3_step_general_101_CIband$mean,type="l",ylab="3-step general effect (calls)",xlab="# lags",bty="n",cex.axis=1.5,cex.lab=1.5,ylim=c(-2,1))
-  polygon(c(1:708,rev(1:708)),c(call_3_step_general_101_CIband$upper,rev(call_3_step_general_101_CIband$lower)),col="grey90",border="grey")
-  points(1:708,call_3_step_general_101_CIband$mean,type="l")
+  call_2_step_general_101_CIband = plot_simulatedCI(call_2_step_general_101,probs=c(0.05,0.95),printFlag=F)
+  plot(1:708,call_2_step_general_101_CIband$mean,type="l",ylab="2-step general effect (calls)",xlab="# lags",bty="n",cex.axis=2,cex.lab=2,ylim=c(-2,1))
+  polygon(c(1:708,rev(1:708)),c(call_2_step_general_101_CIband$upper,rev(call_2_step_general_101_CIband$lower)),col="grey90",border="grey")
+  points(1:708,call_2_step_general_101_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
   legend("bottomright",legend=c("estimate", "95% CI"),
          pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
          bty = "n", # remove the bounder of the legend
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
-  
-  # impulse impact graph at t=600
-  call_effects_vs_qlag_CIband=plot_simulatedCI(call_qlag_effects,probs=c(0.05,0.95),printFlag=F)
-  plot(0:10,call_effects_vs_qlag_CIband$mean,type="l",ylab="q-lag effect at t=600 (calls)",xlab="# lags",bty="n",cex.axis=2,cex.lab=2,ylim=c(-1,0.5))
-  polygon(c(0:10,rev(0:10)),c(call_effects_vs_qlag_CIband$upper,rev(call_effects_vs_qlag_CIband$lower)),col="grey90",border="grey")
-  points(0:10,call_effects_vs_qlag_CIband$mean,type="l")
-  points(0:10,call_effects_vs_qlag_CIband$mean,pch=16)
-  abline(h=0,lty=3,lwd=2)
-  legend("bottomright",legend=c("estimate", "95% CI"),
-         pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
-         bty = "n", # remove the bounder of the legend
-         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
+  dev.off()
 }
 
 
 #########################################################################
 ######          simulate causal estimands of texts with CI          #####
 #########################################################################
-# jump directly to load the data without recalculation!!
-# covariates has been extracted before in the calculation of calls
-# y_coeffi_var_table=lapply(1:nrow(ssm_y$out_smooth$s),function(i){dlmSvd2var(ssm_y$out_smooth$U.S[[i]],ssm_y$out_smooth$D.S[i,])});head(y_coeffi_var_table)
-# c_coeffi_var_table=lapply(1:nrow(ssm_c$out_smooth$s),function(i){dlmSvd2var(ssm_c$out_smooth$U.S[[i]],ssm_c$out_smooth$D.S[i,])});head(c_coeffi_var_table)
-# second, calculate for texts
-y_coeffi_table=as.data.frame(ssm_y$out_smooth$s);colnames(y_coeffi_table)[c(1:2,5:7)]=c("(Intercept)","y_1","x","x_1","c");head(y_coeffi_table)
-c_coeffi_table=as.data.frame(ssm_c$out_smooth$s);colnames(c_coeffi_table)[c(1,2,4,5)]=c("(Intercept)","c_1","x_1","y_1");head(c_coeffi_table)
-raw_data=data[,c(2,3,5,7)];colnames(raw_data)=c("Date","y","x","c");head(raw_data)
+y_coeffi_table_text=as.data.frame(ssm_y$out_smooth$s);colnames(y_coeffi_table_text)[c(1:2,5:7)]=c("(Intercept)","y_1","x","x_1","c");head(y_coeffi_table_text)
+c_coeffi_table_text=as.data.frame(ssm_c$out_smooth$s);colnames(c_coeffi_table_text)[c(1,2,4,5)]=c("(Intercept)","c_1","x_1","y_1");head(c_coeffi_table_text)
+raw_data_text=data[,c(2,3,5,7)];colnames(raw_data_text)=c("Date","y","x","c");head(raw_data_text)
+y_coeffi_var_table_text=y_coeffi_var_table_call
+c_coeffi_var_table_text=c_coeffi_var_table_call
+time=1:nrow(ssm_y$out_smooth$s)
+# calculate text's contemporaneous effect with CI (save text_contemporaneous)
+text_contemporaneous = calculate.causaleffect(t=time,tx=1,y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,
+                                              CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=1,printFlag=T)
+# calculate text's 1-lag effect with CI (save text_1_lag)
+text_1_lag = calculate.causaleffect(t=time,tx=c(1,0),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,
+                                    CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=2,printFlag=T)
+# calculate text's 2-lag effect with CI (save text_2_lag)
+text_2_lag = calculate.causaleffect(t=time,tx=c(1,0,0),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,
+                                    CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=2,printFlag=T)
+# calculate text's 3-lag effect with CI (save text_3_lag)
+text_3_lag = calculate.causaleffect(t=time,tx=c(1,0,0,0),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,
+                                    CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=2,printFlag=T)
+# calculate text's 1-lag structural effect with CI (save text_1_lag_structural_direct)
+text_1_lag_structural_direct = calculate.controlled_direct_effect(t=time,y_coeffi_table=y_coeffi_table_text,
+                                                                  CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_text,seed=3,printFlag=T)
+# calculate text's 2-step total effect with CI (save text_1_step)
+text_1_step = calculate.causaleffect(t=time,tx=c(1,1),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,
+                                     CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=4,printFlag=T)
+# calculate text's 2-step general effect with CI
+text_2_step_general_101 = calculate.causaleffect(t=time,tx=c(1,0,1),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,
+                                              CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=5,printFlag=T)
+# calculate text's 3-step general effect with CI
+text_3_step_general_0101 = calculate.causaleffect(t=time,tx=c(0,1,0,1),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,
+                                                  CI=T,n_sim=1000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=6,printFlag=T)
 
-# calculate text's contemporaneous effect directly with CI (save call_contemporaneous)
-set.seed(1)
-text_contemporaneous = calculate.effect_allt_withCI(tx=c(1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
-# calculate text's 1-lag effect directly with CI
-set.seed(2)
-text_1_lag = calculate.effect_allt_withCI(tx=c(1,0),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
-# calculate text's 1-lag structural direct effect directly with CI
-set.seed(3)
-text_1_lag_structural_direct = calculate.controlled_direct_effect_allt_withCI(y_coeffi_table,y_coeffi_var_table,n_sim=1000,printFlag=T)
-# calculate text's 2-step total effect directly with CI
-set.seed(4)
-text_1_step = calculate.effect_allt_withCI(tx=c(1,1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
-# calculate text's 3-step general effect directly with CI
-set.seed(5)
-text_2_step_general_101 = calculate.effect_allt_withCI(tx=c(1,0,1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
-# calculate text's 4-step general effect directly with CI
-set.seed(6)
-text_3_step_general_0101 = calculate.effect_allt_withCI(tx=c(0,1,0,1),y_coeffi_table=y_coeffi_table,y_coeffi_var_table=y_coeffi_var_table,c_coeffi_table=c_coeffi_table,c_coeffi_var_table=c_coeffi_var_table,n_sim=1000,printFlag=T)
 
-# impulse impact graph at t=600
-t=600;n_sim=1000
-set.seed(1)
-text_qlag_effects_part1=simulate.counterfactual_singlet_withCI(t,tx=c(1,rep(0,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
-set.seed(1)
-text_qlag_effects_part2=simulate.counterfactual_singlet_withCI(t,tx=c(0,rep(0,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
-text_effects_vs_qlag=text_qlag_effects_part1-text_qlag_effects_part2
-set.seed(1)
-text_qstep_effects_part1=simulate.counterfactual_singlet_withCI(t,tx=c(1,rep(1,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
-set.seed(1)
-text_qstep_effects_part2=simulate.counterfactual_singlet_withCI(t,tx=c(0,rep(0,10)),y_coeffi_table,y_coeffi_var_table,c_coeffi_table,c_coeffi_var_table,raw_data,n_sim=n_sim,printFlag=T)
-text_effects_vs_qstep=text_qstep_effects_part1-text_qstep_effects_part2
-
+# impulse impact graph at t=600 (save text_effects_vs_qlag)
+text_qlag_effects_part1 = simulate.counterfactual_path_singlet(t=600,tx=c(1,rep(0,10)),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,raw_data=raw_data_text,
+                                                              CI=T,n_sim=10000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=1,
+                                                              printFlag=T)
+text_qlag_effects_part2 = simulate.counterfactual_path_singlet(t=600,tx=c(0,rep(0,10)),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,raw_data=raw_data_text,
+                                                               CI=T,n_sim=10000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=1,
+                                                               printFlag=T)
+text_effects_vs_qlag = text_qlag_effects_part1-text_qlag_effects_part2
+# step response plot at t=600
+text_qstep_effects_part1 = simulate.counterfactual_path_singlet(t=600,tx=c(1,rep(1,10)),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,raw_data=raw_data_text,
+                                                               CI=T,n_sim=10000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=1,
+                                                               printFlag=T)
+text_qstep_effects_part2 = simulate.counterfactual_path_singlet(t=600,tx=c(0,rep(0,10)),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,raw_data=raw_data_text,
+                                                                CI=T,n_sim=10000,y_coeffi_var_table=y_coeffi_var_table_text,c_coeffi_var_table=c_coeffi_var_table_text,seed=1,
+                                                                printFlag=T)
+text_effects_vs_qstep = text_qstep_effects_part1-text_qstep_effects_part2
 save(text_contemporaneous,
-     text_1_lag,text_1_lag_structural_direct,
-     text_1_step,text_2_step_general_101,
-     text_3_step_general_0101,
+     text_1_lag,text_2_lag,text_3_lag,text_1_lag_structural_direct,
+     text_1_step,text_2_step_general_101,text_3_step_general_0101,
      text_effects_vs_qlag,
      text_effects_vs_qstep,
-     file="/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/result_texts.Rdata")
-load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/result_texts.Rdata")
+     file="/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/result_texts.Rdata")
 
+# compare results from analytical solution with CI, Monte Carlo simulation with CI, and true value (not used, just for checking)
+# Check results of q-lag effects
+par(mfrow=c(1,1),mar=c(4, 4, 2, 0.5))
+plot(0:10,colMeans(text_effects_vs_qlag),main="Analytical vs Monte Carlo vs Ture",ylab="q-lag effect",xlab="#lags",cex=1.5,cex.lab=1.5,cex.axis= 1.5, bty="n",col="black",pch=5)
+points(0:3,c(rowMeans(text_contemporaneous)[600],rowMeans(text_1_lag)[600],rowMeans(text_2_lag)[600],rowMeans(text_3_lag)[600]),col="blue",cex=1.5,pch=16)
+points(0:3,c(calculate.causaleffect(t=600,tx=1,y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,CI=F),
+             calculate.causaleffect(t=600,tx=c(1,0),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,CI=F),
+             calculate.causaleffect(t=600,tx=c(1,0,0),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,CI=F),
+             calculate.causaleffect(t=600,tx=c(1,0,0,0),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,CI=F)),
+       col="red",pch=15,cex=1.5)
+legend("bottomright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
+       pch = c(5,16,15), lty=c(1,1,1), col=c("black","blue","red"),
+       bty = "n", # remove the bounder of the legend
+       lwd = c(NA,NA,NA),cex=1.5)
+# Check results of q-step effects
+plot(0:10,colMeans(text_effects_vs_qstep),main="Analytical vs Monte Carlo vs Ture",ylab="q-step effect",xlab="#lags",cex=1.5,cex.lab=1.5,cex.axis= 1.5, bty="n",col="black",pch=5)
+points(0:1,c(rowMeans(text_contemporaneous)[600],rowMeans(text_1_step)[600]),col="blue",cex=1.5,pch=16)
+points(0:3,c(calculate.causaleffect(t=600,tx=1,y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,CI=F),
+             calculate.causaleffect(t=600,tx=c(1,1),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,CI=F),
+             calculate.causaleffect(t=600,tx=c(1,1,1),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,CI=F),
+             calculate.causaleffect(t=600,tx=c(1,1,1,1),y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,CI=F)),
+       col="red",pch=15,cex=1.5)
+legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
+       pch = c(5,16,15), lty=c(1,1,1), col=c("black","blue","red"),
+       bty = "n", # remove the bounder of the legend
+       lwd = c(NA,NA,NA),cex=1.5)
 
 # plots
 {
+  load("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/result_texts.Rdata")
   # text's contemporaneous effect
-  # Chosen in maintext of the paper (Figure 4a)
-  location="/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxuan_Cai/[Paper 1] Causal estimands and Graphical representation for time series data/"
-  pdf(file = paste(location,"contemp_texts.pdf",sep=""),
+  # Chosen in main text of the paper (Figure 4a)
+  pdf(file = paste(address_main,"contemp_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
   par(mar = c(2, 5, .1, .1))
   par(mfrow=c(1,1))
-  text_contemporaneous_CIband=plot_simulatedCI(t(text_contemporaneous),probs=c(0.05,0.95),printFlag=F)
+  text_contemporaneous_CIband=plot_simulatedCI(text_contemporaneous,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,text_contemporaneous_CIband$mean,type="l",ylab="contemporaneous (texts)",xlab="",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-3,0.5))
   polygon(c(1:708,rev(1:708)),c(text_contemporaneous_CIband$upper,rev(text_contemporaneous_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_contemporaneous_CIband$mean,type="l")
@@ -647,12 +683,12 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
   dev.off()
   
   # text's 1-lag effect  (Figure 4b)
-  pdf(file = paste(location,"lag1_texts.pdf",sep=""),
+  pdf(file = paste(address_main,"lag1_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
   par(mar = c(2, 5, .1, .1))
   par(mfrow=c(1,1))
-  text_1_lag_CIband=plot_simulatedCI(t(text_1_lag),probs=c(0.05,0.95),printFlag=F)
+  text_1_lag_CIband=plot_simulatedCI(text_1_lag,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,text_1_lag_CIband$mean,type="l",ylab="1-lag effect (texts)",xlab="Date",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-3,0.5))
   polygon(c(1:708,rev(1:708)),c(text_1_lag_CIband$upper,rev(text_1_lag_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_1_lag_CIband$mean,type="l")
@@ -664,51 +700,47 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
   dev.off()
   
-  # unused code for plotting text's q-lag effects for q=2,3,4 for all time points
-  # lag2_analytical=list.cbind(lapply(result_alltimepoints_analytical,function(x){x[,3]}))
-  # lag2_CIband_analytical=plot_simulatedCI(t(lag2_analytical),probs=c(0.05,0.95),printFlag=F)
-  # plot(data$Date,lag2_CIband_analytical$mean,type="l",ylab="2-lag effect (texts)",xlab="Date",bty="n",xaxt="n",cex.axis=2,cex.lab=2,ylim=c(-3,0.3))
-  # axis(side=1,at=xlabs,labels=as.character(xlabs),cex.axis=1.5)
-  # polygon(c(data$Date,rev(data$Date)),c(lag2_CIband_analytical$upper,rev(lag2_CIband_analytical$lower)),col="grey90",border="grey")
-  # points(data$Date,lag2_CIband_analytical$mean,type="l")
-  # abline(h=0,lty=3,lwd=2)
-  # legend("bottomright",legend=c("estimate", "95% CI"),
-  #        pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
-  #        bty = "n", # remove the bounder of the legend
-  #        lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
-  # 
-  # lag3_analytical=list.cbind(lapply(result_alltimepoints_analytical,function(x){x[,4]}))
-  # lag3_CIband_analytical=plot_simulatedCI(t(lag3_analytical),probs=c(0.05,0.95),printFlag=F)
-  # plot(data$Date,lag3_CIband_analytical$mean,type="l",ylab="3-lag effect (texts)",xlab="Date",bty="n",xaxt="n",cex.axis=2,cex.lab=2,ylim=c(-3,0.3))
-  # axis(side=1,at=xlabs,labels=as.character(xlabs),cex.axis=1.5)
-  # polygon(c(data$Date,rev(data$Date)),c(lag3_CIband_analytical$upper,rev(lag3_CIband_analytical$lower)),col="grey90",border="grey")
-  # points(data$Date,lag3_CIband_analytical$mean,type="l")
-  # abline(h=0,lty=3,lwd=2)
-  # legend("bottomright",legend=c("estimate", "95% CI"),
-  #        pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
-  #        bty = "n", # remove the bounder of the legend
-  #        lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
-  # 
-  # lag4_analytical=list.cbind(lapply(result_alltimepoints_analytical,function(x){x[,5]}))
-  # lag4_CIband_analytical=plot_simulatedCI(t(lag4_analytical),probs=c(0.05,0.95),printFlag=F)
-  # plot(data$Date,lag4_CIband_analytical$mean,type="l",ylab="4-lag effect (texts)",xlab="Date",bty="n",xaxt="n",cex.axis=2,cex.lab=2,ylim=c(-3,0.3))
-  # axis(side=1,at=xlabs,labels=as.character(xlabs),cex.axis=1.5)
-  # polygon(c(data$Date,rev(data$Date)),c(lag4_CIband_analytical$upper,rev(lag4_CIband_analytical$lower)),col="grey90",border="grey")
-  # points(data$Date,lag4_CIband_analytical$mean,type="l")
-  # abline(h=0,lty=3,lwd=2)
-  # legend("bottomright",legend=c("estimate", "95% CI"),
-  #        pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
-  #        bty = "n", # remove the bounder of the legend
-  #        lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2)
-  
-  
-  # text's 1-lag structural direct effect  (Figure 4c)
-  pdf(file = paste(location,"lag1_controlled_direct_texts.pdf",sep=""),
+  # text's 2-lag effect  (Appendix)
+  pdf(file = paste(address_appendix,"lag2_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
   par(mar = c(2, 5, .1, .1))
   par(mfrow=c(1,1))
-  text_1_lag_structural_direct_CIband = plot_simulatedCI(t(text_1_lag_structural_direct),probs=c(0.05,0.95),printFlag=F)
+  text_2_lag_CIband=plot_simulatedCI(text_2_lag,probs=c(0.05,0.95),printFlag=F)
+  plot(1:708,text_2_lag_CIband$mean,type="l",ylab="2-lag effect (texts)",xlab="Date",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-3,0.5))
+  polygon(c(1:708,rev(1:708)),c(text_2_lag_CIband$upper,rev(text_2_lag_CIband$lower)),col="grey90",border="grey")
+  points(1:708,text_2_lag_CIband$mean,type="l")
+  abline(h=0,lty=3,lwd=2)
+  legend("bottomright",legend=c("estimate", "95% CI"),
+         pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
+         bty = "n", # remove the bounder of the legend
+         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
+  dev.off()
+  
+  # text's 3-lag effect  (Appendix)
+  pdf(file = paste(address_appendix,"lag3_texts.pdf",sep=""),
+      width = 10, # The width of the plot in inches
+      height = 6) # The height of the plot in inches
+  par(mar = c(2, 5, .1, .1))
+  par(mfrow=c(1,1))
+  text_3_lag_CIband=plot_simulatedCI(text_3_lag,probs=c(0.05,0.95),printFlag=F)
+  plot(1:708,text_3_lag_CIband$mean,type="l",ylab="3-lag effect (texts)",xlab="Date",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-3,0.5))
+  polygon(c(1:708,rev(1:708)),c(text_3_lag_CIband$upper,rev(text_3_lag_CIband$lower)),col="grey90",border="grey")
+  points(1:708,text_3_lag_CIband$mean,type="l")
+  abline(h=0,lty=3,lwd=2)
+  legend("bottomright",legend=c("estimate", "95% CI"),
+         pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
+         bty = "n", # remove the bounder of the legend
+         lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
+  dev.off()
+  
+  # text's 1-lag structural direct effect  (Figure 4c)
+  pdf(file = paste(address_main,"lag1_controlled_direct_texts.pdf",sep=""),
+      width = 10, # The width of the plot in inches
+      height = 6) # The height of the plot in inches
+  par(mar = c(2, 5, .1, .1))
+  par(mfrow=c(1,1))
+  text_1_lag_structural_direct_CIband = plot_simulatedCI(text_1_lag_structural_direct,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,text_1_lag_structural_direct_CIband$mean,type="l",ylab="1-lag controlled direct (texts)",xlab="# lags",bty="n",cex.axis=2.5,cex.lab=2.3,ylim=c(-3,0.5))
   polygon(c(1:708,rev(1:708)),c(text_1_lag_structural_direct_CIband$upper,rev(text_1_lag_structural_direct_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_1_lag_structural_direct_CIband$mean,type="l")
@@ -721,12 +753,12 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
   dev.off()
   
   # text's 1-step total effect  (Figure 4d)
-  pdf(file = paste(location,"step1_total_texts.pdf",sep=""),
+  pdf(file = paste(address_main,"step1_total_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
   par(mar = c(2, 5, .1, .1))
   par(mfrow=c(1,1))
-  text_1_step_CIband = plot_simulatedCI(t(text_1_step),probs=c(0.05,0.95),printFlag=F)
+  text_1_step_CIband = plot_simulatedCI(text_1_step,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,text_1_step_CIband$mean,type="l",ylab="1-step total (texts)",xlab="# lags",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-6,0.5))
   polygon(c(1:708,rev(1:708)),c(text_1_step_CIband$upper,rev(text_1_step_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_1_step_CIband$mean,type="l")
@@ -739,12 +771,12 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
   dev.off()
   
   # text's 3-step general effect (Figure 6a)
-  pdf(file = paste(location,"step3_general_0101_texts.pdf",sep=""),
+  pdf(file = paste(address_main,"step3_general_0101_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
   par(mar = c(5, 5, .1, .1))
   par(mfrow=c(1,1))
-  text_3_step_general_0101_CIband = plot_simulatedCI(t(text_3_step_general_0101),probs=c(0.05,0.95),printFlag=F)
+  text_3_step_general_0101_CIband = plot_simulatedCI(text_3_step_general_0101,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,text_3_step_general_0101_CIband$mean,type="l",ylab="4-step general effect (texts)",xlab="days",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-4,0.5))
   polygon(c(1:708,rev(1:708)),c(text_3_step_general_0101_CIband$upper,rev(text_3_step_general_0101_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_3_step_general_0101_CIband$mean,type="l")
@@ -757,12 +789,12 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
   dev.off()
   
   # impulse impact graph at t=600 (Figure 5a)
-  pdf(file = paste(location,"impulse_impact_texts.pdf",sep=""),
+  pdf(file = paste(address_main,"impulse_impact_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
   par(mar = c(5, 5, .1, .1))
   par(mfrow=c(1,1))
-  text_effects_vs_qlag_CIband=plot_simulatedCI(text_effects_vs_qlag,probs=c(0.05,0.95),printFlag=F)
+  text_effects_vs_qlag_CIband=plot_simulatedCI(t(text_effects_vs_qlag),probs=c(0.05,0.95),printFlag=F)
   plot(0:10,text_effects_vs_qlag_CIband$mean,type="l",ylab="q-lag at t=600 (texts)",xlab="# lags",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-2.5,0.6))
   polygon(c(0:10,rev(0:10)),c(text_effects_vs_qlag_CIband$upper,rev(text_effects_vs_qlag_CIband$lower)),col="grey90",border="grey")
   points(0:10,text_effects_vs_qlag_CIband$mean,type="l")
@@ -776,12 +808,12 @@ load("/Users/xiaoxuancai/Dropbox (Personal)/MHealthPsychSummerProject2020/Xiaoxu
   dev.off()
   
   # impulse response graph at t=600 (Figure 5b)
-  pdf(file = paste(location,"impulse_response_texts.pdf",sep=""),
+  pdf(file = paste(address_main,"step_response_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
   par(mar = c(5, 5, .1, .1))
   par(mfrow=c(1,1))
-  text_effects_vs_qstep_CIband=plot_simulatedCI(text_effects_vs_qstep,probs=c(0.05,0.95),printFlag=F)
+  text_effects_vs_qstep_CIband=plot_simulatedCI(t(text_effects_vs_qstep),probs=c(0.05,0.95),printFlag=F)
   plot(0:10,text_effects_vs_qstep_CIband$mean,type="l",ylab="q-step total at t=600 (texts)",xlab="# lags",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-9.5,0.6))
   polygon(c(0:10,rev(0:10)),c(text_effects_vs_qstep_CIband$upper,rev(text_effects_vs_qstep_CIband$lower)),col="grey90",border="grey")
   points(0:10,text_effects_vs_qstep_CIband$mean,type="l")
