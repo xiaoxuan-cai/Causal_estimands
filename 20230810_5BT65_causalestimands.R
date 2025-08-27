@@ -277,7 +277,7 @@ result_ARIMAreg_estimate_y
                      AR1_coeffi=NULL,rw_coeffi=c("intercept"),v_cp_param=NULL,
                      w_cp_param=list(list(variable="keycontacts_text_reciprocity_degree_binary",segments=3,changepoints=c(560,640),fixed_cpts=F),
                                      list(variable="keycontacts_text_reciprocity_degree_binary_1",segments=2,changepoints=c(460),fixed_cpts=F)))
-  ssm_y=run.SSM(data_ss=data_ss_ignore_y,formula=formula,ss_param=ss_param_y,max_iteration=100,
+  ssm_y=run.SSM(data_ss=data_ss_ignore_y,formula=formula,ss_param_temp=ss_param_y,max_iteration=100,
                 cpt_learning_param=list(cpt_method="mean",burnin=1/10,mergeband=20,convergence_cri=10),
                 cpt_merge_option="separate",dlm_cpt_learning_option="filter",
                 bandwidth=5,cpt_V =1,printFlag=T)
@@ -469,7 +469,7 @@ points(0:3,c(calculate.causaleffect(t=600,tx=1,y_coeffi_table=y_coeffi_table_cal
              calculate.causaleffect(t=600,tx=c(1,0,0,0),y_coeffi_table=y_coeffi_table_call,c_coeffi_table=c_coeffi_table_call,CI=F)),
        col="red",pch=15,cex=1.5)
 legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Truth"),
-       pch = c(5,2,15), lty=c(1,1,1), col=c("black","blue","red"),
+       pch = c(5,16,15), lty=c(1,1,1), col=c("black","blue","red"),
        bty = "n", # remove the bounder of the legend
        lwd = c(NA,NA,NA),cex=1.5)
 
@@ -777,7 +777,7 @@ legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
   par(mar = c(5, 5, .1, .1))
   par(mfrow=c(1,1))
   text_3_step_general_0101_CIband = plot_simulatedCI(text_3_step_general_0101,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,text_3_step_general_0101_CIband$mean,type="l",ylab="4-step general effect (texts)",xlab="days",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-4,0.5))
+  plot(1:708,text_3_step_general_0101_CIband$mean,type="l",ylab="3-step general effect (texts)",xlab="days",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-4,0.5))
   polygon(c(1:708,rev(1:708)),c(text_3_step_general_0101_CIband$upper,rev(text_3_step_general_0101_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_3_step_general_0101_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -826,6 +826,24 @@ legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
   dev.off()
 }
+# results to report 
+calculate.causaleffect(t=time,tx=1,y_coeffi_table=y_coeffi_table_text,c_coeffi_table=c_coeffi_table_text,CI=F)[c(561-5,641-5,708)]
+# -0.08645334 -1.15407612 -0.73906410
+colMeans(text_contemporaneous_CIband[c(561+10):c(641-10),])
+# lower      upper       mean 
+# -2.1010313 -0.2050973 -1.1562791
+# report the siginificant coefficient for A_{t-1} for text for the 2nd, 3rd, 4th periods
+c(461,561,641)
+colMeans(text_1_lag_CIband[c(461+10):c(561-10),])
+# lower      upper       mean 
+# -1.3208388 -0.2150528 -0.7680753 
+colMeans(text_1_lag_CIband[c(561+10):c(641-10),])
+# lower      upper       mean 
+# -2.2694516 -0.6812153 -1.4722688 
+colMeans(text_1_lag_CIband[c(641+10):c(708-10),])
+# lower      upper       mean 
+# -1.9594416 -0.3831006 -1.1722044 
+
 
 ####################################################################################################
 ######         personalized intervention effect for texts (used in the Main Paper)             #####
