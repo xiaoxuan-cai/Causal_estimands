@@ -340,6 +340,8 @@ lag1_ture=calculate.causaleffect(t=1:1000,tx=c(1,0),y_coeffi_table_new,c_coeffi_
 lag2_ture=calculate.causaleffect(t=1:1000,tx=c(1,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)-calculate.causaleffect(t=1:1000,tx=c(0,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)
 lag3_ture=calculate.causaleffect(t=1:1000,tx=c(1,0,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)-calculate.causaleffect(t=1:1000,tx=c(0,0,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)
 lag4_ture=calculate.causaleffect(t=1:1000,tx=c(1,0,0,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)-calculate.causaleffect(t=1:1000,tx=c(0,0,0,0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)
+lag1_structural_direct_true=calculate.controlled_direct_effect(t=1:1000,y_coeffi_table_new,printFlag=F)
+total1_ture=calculate.causaleffect(t=1:1000,tx=c(1,1),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)-calculate.causaleffect(t=1:1000,tx=c(0,0),y_coeffi_table_new,c_coeffi_table_new,printFlag=F)
 estimand_qlag_ture=simulate.counterfactual_path_singlet(t=500,tx=c(1,0,0,0,0,0,0),y_coeffi_table_new,c_coeffi_table_new,raw_data=data,printFlag=F)-
   simulate.counterfactual_path_singlet(t=500,tx=c(0,0,0,0,0,0,0),y_coeffi_table_new,c_coeffi_table_new,raw_data=data,printFlag=F)
 estimand_qstep_total_ture=simulate.counterfactual_path_singlet(t=500,tx=rep(1,7),y_coeffi_table_new,c_coeffi_table_new,raw_data=data,printFlag=F)-
@@ -427,6 +429,38 @@ polygon(c(5:1000,rev(5:1000)),c(lag4_summary$`2.5%`,rev(lag4_summary$`97.5%`)),c
 points(5:1000,lag4_summary$mean,type="l")
 points(1:1000,lag4_ture,col="red",type="l",lty=2,lwd=2)
 legend("bottomright",legend=c("estimate", "95% CI","true"),
+       pch = c(NA,15,NA), lty=c(1,1,2), col=c("black","grey","red"),
+       bty = "n", # remove the bounder of the legend
+       lwd = c(1,NA,2), pt.bg = c(NA,"grey90",NA),cex=2.5)
+dev.off()
+
+lag1_structural_direct = data.frame(mean=rowMeans(lag1_direct),t(apply(lag1_direct,1,quantile,probs=c(0.025,0.975))))
+colnames(lag1_structural_direct)=c("mean","2.5%","97.5%")
+pdf(file=paste(address_appendix,"lag1_structural_direct_simu.pdf",sep=""),width=11,height=8)
+par(mar = c(5, 6, 1, 1))
+plot(1:1000,lag1_structural_direct$mean,ylim=c(-3,-1),type="l",
+     bty="n",cex.lab=3,cex.axis=3,
+     ylab="1-lag  structural direct effect",xlab="time")
+polygon(c(1:1000,rev(1:1000)),c(lag1_structural_direct$`2.5%`,rev(lag1_structural_direct$`97.5%`)),col="grey90",border="grey")
+points(1:1000,lag1_structural_direct$mean,type="l")
+points(1:1000,lag1_structural_direct_true,col="red",type="l",lty=2,lwd=2)
+legend("bottomright",legend=c("estimate", "95% CI","true"),
+       pch = c(NA,15,NA), lty=c(1,1,2), col=c("black","grey","red"),
+       bty = "n", # remove the bounder of the legend
+       lwd = c(1,NA,2), pt.bg = c(NA,"grey90",NA),cex=2.5)
+dev.off()
+
+total1 = data.frame(mean=rowMeans(total1[-1,]),t(apply(total1[-1,],1,quantile,probs=c(0.025,0.975))))
+colnames(total1)=c("mean","2.5%","97.5%")
+pdf(file=paste(address_appendix,"total1_simu.pdf",sep=""),width=11,height=8)
+par(mar = c(5, 6, 1, 1))
+plot(2:1000,total1$mean,ylim=c(-12,0),type="l",
+     bty="n",cex.lab=3,cex.axis=3,
+     ylab="1-step total effect",xlab="time")
+polygon(c(2:1000,rev(2:1000)),c(total1$`2.5%`,rev(total1$`97.5%`)),col="grey90",border="grey")
+points(2:1000,total1$mean,type="l")
+points(1:1000,total1_ture,col="red",type="l",lty=2,lwd=2)
+legend("topright",legend=c("estimate", "95% CI","true"),
        pch = c(NA,15,NA), lty=c(1,1,2), col=c("black","grey","red"),
        bty = "n", # remove the bounder of the legend
        lwd = c(1,NA,2), pt.bg = c(NA,"grey90",NA),cex=2.5)
