@@ -485,10 +485,10 @@ legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Tru
   load("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/result_calls.Rdata")
 
   # call's contemporaneous effect (used in appendix)
-  pdf(file=paste(address_appendix,"contemp_calls.pdf",sep=""),width = 9, height = 6)
-  par(mar = c(2.5, 5, .5, .5))
+  pdf(file=paste(address_appendix,"contemp_calls.pdf",sep=""),width = 10, height = 6)
+  par(mar = c(2, 5, .1, .1))
   call_contemporaneous_CIband=plot_simulatedCI(call_contemporaneous,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_contemporaneous_CIband$mean,type="l",ylab="contemporaneous effect (calls)",xlab="",bty="n", cex.axis=2.5,cex.axis=2.5,ylim=c(-1,0.5))
+  plot(1:708,call_contemporaneous_CIband$mean,type="l",ylab="contemporaneous effect (calls)",xlab="",bty="n",  cex.axis=2.5,cex.lab=2.5,ylim=c(-1,0.5))
   polygon(c(1:708,rev(1:708)),c(call_contemporaneous_CIband$upper,rev(call_contemporaneous_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_contemporaneous_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -499,10 +499,10 @@ legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Tru
   dev.off()
   
   # call's 1-lag effect (used in appendix)
-  pdf(file=paste(address_appendix,"lag1_calls.pdf",sep=""),width = 9, height = 6)
-  par(mar = c(2.5, 5, .5, .5))
+  pdf(file=paste(address_appendix,"lag1_calls.pdf",sep=""),width = 10, height = 6)
+  par(mar = c(2, 5, .1, .1))
   call_1_lag_CIband=plot_simulatedCI(call_1_lag,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_1_lag_CIband$mean,type="l",ylab="1-lag effect (calls)",xlab="Date",bty="n", cex.axis=2.5,cex.axis=2.5,ylim=c(-1,0.5))
+  plot(1:708,call_1_lag_CIband$mean,type="l",ylab="1-lag effect (calls)",xlab="",bty="n",  cex.axis=2.5,cex.lab=2.5,ylim=c(-1,0.5))
   polygon(c(1:708,rev(1:708)),c(call_1_lag_CIband$upper,rev(call_1_lag_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_1_lag_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -513,10 +513,10 @@ legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Tru
   dev.off()
   
   # call's 2-lag effect (used in appendix)
-  pdf(file=paste(address_appendix,"lag2_calls.pdf",sep=""),width = 9, height = 6)
-  par(mar = c(2.5, 5, .5, .5))
+  pdf(file=paste(address_appendix,"lag2_calls.pdf",sep=""),width = 10, height = 6)
+  par(mar = c(2, 5, .1, .1))
   call_2_lag_CIband=plot_simulatedCI(call_2_lag,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_2_lag_CIband$mean,type="l",ylab="2-lag effect (calls)",xlab="Date",bty="n", cex.axis=2.5,cex.axis=2.5,ylim=c(-1,0.5))
+  plot(1:708,call_2_lag_CIband$mean,type="l",ylab="2-lag effect (calls)",xlab="",bty="n",  cex.axis=2.5,cex.lab=2.5,ylim=c(-1,0.5))
   polygon(c(1:708,rev(1:708)),c(call_2_lag_CIband$upper,rev(call_2_lag_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_2_lag_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -527,10 +527,10 @@ legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Tru
   dev.off()
   
   # call's 3-lag effect (used in appendix)
-  pdf(file=paste(address_appendix,"lag3_calls.pdf",sep=""),width = 9, height = 6)
-  par(mar = c(2.5, 5, .5, .5))
+  pdf(file=paste(address_appendix,"lag3_calls.pdf",sep=""),width = 10, height = 6)
+  par(mar = c(2, 5, .1, .1))
   call_3_lag_CIband=plot_simulatedCI(call_3_lag,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_3_lag_CIband$mean,type="l",ylab="3-lag effect (calls)",xlab="Date",bty="n", cex.axis=2.5,cex.axis=2.5,ylim=c(-1,0.5))
+  plot(1:708,call_3_lag_CIband$mean,type="l",ylab="3-lag effect (calls)",xlab="",bty="n",  cex.axis=2.5,cex.lab=2.5,ylim=c(-1,0.5))
   polygon(c(1:708,rev(1:708)),c(call_3_lag_CIband$upper,rev(call_3_lag_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_3_lag_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -541,10 +541,10 @@ legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Tru
   dev.off()
   
   # call's 1-lag structural direct effect
-  pdf(file=paste(address_appendix,"lag1_controlled_direct_effect_calls.pdf",sep=""),width = 9, height = 6)
-  par(mar = c(2.5, 5, .5, .5))
+  pdf(file=paste(address_appendix,"lag1_controlled_direct_effect_calls.pdf",sep=""),width = 10, height = 6)
+  par(mar = c(2, 5, .1, .1))
   call_1_lag_structural_direct_CIband = plot_simulatedCI(call_1_lag_structural_direct,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_1_lag_structural_direct_CIband$mean,type="l",ylab="1-lag controlled direct effect (calls)",xlab="# lags",bty="n",cex.axis=2.5,cex.axis=2.5,ylim=c(-.7,0.7))
+  plot(1:708,call_1_lag_structural_direct_CIband$mean,type="l",ylab="1-lag controlled direct effect (calls)",xlab="# lags",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-.7,0.7))
   polygon(c(1:708,rev(1:708)),c(call_1_lag_structural_direct_CIband$upper,rev(call_1_lag_structural_direct_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_1_lag_structural_direct_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -555,10 +555,10 @@ legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Tru
   dev.off()
   
   # call's 1-step total effect
-  pdf(file=paste(address_appendix,"step1_total_calls.pdf",sep=""),width = 9, height = 6)
-  par(mar = c(2.5, 5, .5, .5))
+  pdf(file=paste(address_appendix,"step1_total_calls.pdf",sep=""),width = 10, height = 6)
+  par(mar = c(2, 5, .1, .1))
   call_1_step_CIband = plot_simulatedCI(call_1_step,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_1_step_CIband$mean,type="l",ylab="1-step total effect (calls)",xlab="Date",bty="n",cex.axis=2.5,cex.axis=2.5,ylim=c(-2,1))
+  plot(1:708,call_1_step_CIband$mean,type="l",ylab="1-step total effect (calls)",xlab="",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-2,1))
   polygon(c(1:708,rev(1:708)),c(call_1_step_CIband$upper,rev(call_1_step_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_1_step_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -569,10 +569,10 @@ legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Tru
   dev.off()
   
   # call's 2-step total effect
-  pdf(file=paste(address_appendix,"step2_total_calls.pdf",sep=""),width = 9, height = 6)
-  par(mar = c(2.5, 5, .5, .5))
+  pdf(file=paste(address_appendix,"step2_total_calls.pdf",sep=""),width = 10, height = 6)
+  par(mar = c(2, 5, .1, .1))
   call_2_step_CIband = plot_simulatedCI(call_2_step,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_2_step_CIband$mean,type="l",ylab="2-step total effect (calls)",xlab="Date",bty="n",cex.axis=2.5,cex.axis=2.5,ylim=c(-2,1))
+  plot(1:708,call_2_step_CIband$mean,type="l",ylab="2-step total effect (calls)",xlab="",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-2,1))
   polygon(c(1:708,rev(1:708)),c(call_2_step_CIband$upper,rev(call_2_step_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_2_step_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -583,10 +583,10 @@ legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Tru
   dev.off()
   
   # call's 3-step total effect
-  pdf(file=paste(address_appendix,"step3_total_calls.pdf",sep=""),width = 9, height = 6)
-  par(mar = c(2.5, 5, .5, .5))
+  pdf(file=paste(address_appendix,"step3_total_calls.pdf",sep=""),width = 10, height = 6)
+  par(mar = c(2, 5, .1, .1))
   call_3_step_CIband = plot_simulatedCI(call_3_step,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_3_step_CIband$mean,type="l",ylab="3-step total effect (calls)",xlab="# lags",bty="n",cex.axis=2.5,cex.axis=2.5,ylim=c(-2,1))
+  plot(1:708,call_3_step_CIband$mean,type="l",ylab="3-step total effect (calls)",xlab="# lags",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-2,1))
   polygon(c(1:708,rev(1:708)),c(call_3_step_CIband$upper,rev(call_3_step_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_3_step_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -597,10 +597,10 @@ legend("bottomright",legend=c("Monte Carlo without CI","Analytical with CI","Tru
   dev.off()
   
   # call's 2-step general effect
-  pdf(file=paste(address_appendix,"step2_general_101_calls.pdf",sep=""),width = 9, height = 6)
-  par(mar = c(2.5, 5, .5, .5))
+  pdf(file=paste(address_appendix,"step2_general_101_calls.pdf",sep=""),width = 10, height = 6)
+  par(mar = c(2, 5, .1, .1))
   call_2_step_general_101_CIband = plot_simulatedCI(call_2_step_general_101,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,call_2_step_general_101_CIband$mean,type="l",ylab="2-step general effect (calls)",xlab="Date",bty="n",cex.axis=2.5,cex.axis=2.5,ylim=c(-2,1))
+  plot(1:708,call_2_step_general_101_CIband$mean,type="l",ylab="2-step general effect (calls)",xlab="",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-2,1))
   polygon(c(1:708,rev(1:708)),c(call_2_step_general_101_CIband$upper,rev(call_2_step_general_101_CIband$lower)),col="grey90",border="grey")
   points(1:708,call_2_step_general_101_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -712,7 +712,7 @@ legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
   par(mar = c(2, 5, .1, .1))
   par(mfrow=c(1,1))
   text_contemporaneous_CIband=plot_simulatedCI(text_contemporaneous,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,text_contemporaneous_CIband$mean,type="l",ylab="contemporaneous (texts)",xlab="",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-3,0.5))
+  plot(1:708,text_contemporaneous_CIband$mean,type="l",ylab="contemporaneous effect (texts)",xlab="",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-3,0.5))
   polygon(c(1:708,rev(1:708)),c(text_contemporaneous_CIband$upper,rev(text_contemporaneous_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_contemporaneous_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -782,7 +782,7 @@ legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
   par(mar = c(2, 5, .1, .1))
   par(mfrow=c(1,1))
   text_1_lag_structural_direct_CIband = plot_simulatedCI(text_1_lag_structural_direct,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,text_1_lag_structural_direct_CIband$mean,type="l",ylab="1-lag controlled direct (texts)",xlab="",bty="n",cex.axis=2.5,cex.lab=2.3,ylim=c(-3,0.5))
+  plot(1:708,text_1_lag_structural_direct_CIband$mean,type="l",ylab="1-lag controlled direct effect (texts)",xlab="",bty="n", cex.axis=2.5,cex.lab=2.5,ylim=c(-3,0.5))
   polygon(c(1:708,rev(1:708)),c(text_1_lag_structural_direct_CIband$upper,rev(text_1_lag_structural_direct_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_1_lag_structural_direct_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -800,7 +800,7 @@ legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
   par(mar = c(2, 5, .1, .1))
   par(mfrow=c(1,1))
   text_1_step_CIband = plot_simulatedCI(text_1_step,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,text_1_step_CIband$mean,type="l",ylab="1-step total (texts)",xlab="",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-6,0.5))
+  plot(1:708,text_1_step_CIband$mean,type="l",ylab="1-step total effect (texts)",xlab="",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-6,0.5))
   polygon(c(1:708,rev(1:708)),c(text_1_step_CIband$upper,rev(text_1_step_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_1_step_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -818,7 +818,7 @@ legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
   par(mar = c(2, 5, .1, .1))
   par(mfrow=c(1,1))
   text_2_step_CIband = plot_simulatedCI(text_2_step,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,text_2_step_CIband$mean,type="l",ylab="2-step total (texts)",xlab="",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-6,0.5))
+  plot(1:708,text_2_step_CIband$mean,type="l",ylab="2-step total effect (texts)",xlab="",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-6,0.5))
   polygon(c(1:708,rev(1:708)),c(text_2_step_CIband$upper,rev(text_2_step_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_2_step_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -835,7 +835,7 @@ legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
   par(mar = c(2, 5, .1, .1))
   par(mfrow=c(1,1))
   text_3_step_CIband = plot_simulatedCI(text_3_step,probs=c(0.05,0.95),printFlag=F)
-  plot(1:708,text_3_step_CIband$mean,type="l",ylab="3-step total (texts)",xlab="",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-6,0.5))
+  plot(1:708,text_3_step_CIband$mean,type="l",ylab="3-step total effect (texts)",xlab="",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-6,0.5))
   polygon(c(1:708,rev(1:708)),c(text_2_step_CIband$upper,rev(text_2_step_CIband$lower)),col="grey90",border="grey")
   points(1:708,text_3_step_CIband$mean,type="l")
   abline(h=0,lty=3,lwd=2)
@@ -844,12 +844,12 @@ legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
          bty = "n", # remove the bounder of the legend
          lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=2.5)
   dev.off()
-  
+
   # text's 2-step general effect
-  pdf(file = paste(address_appendix,"step2_general_0101_texts.pdf",sep=""),
+  pdf(file = paste(address_appendix,"step2_general_101_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
-  par(mar = c(5, 5, .1, .1))
+  par(mar = c(2, 5, .1, .1))
   par(mfrow=c(1,1))
   text_2_step_general_101_CIband = plot_simulatedCI(text_2_step_general_101,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,text_2_step_general_101_CIband$mean,type="l",ylab="2-step general effect (texts)",xlab="",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-4,0.5))
@@ -866,7 +866,7 @@ legend("topright",legend=c("Monte Carlo with CI","Analytical with CI","Truth"),
   pdf(file = paste(address_main,"step3_general_0101_texts.pdf",sep=""),
       width = 10, # The width of the plot in inches
       height = 6) # The height of the plot in inches
-  par(mar = c(5, 5, .1, .1))
+  par(mar = c(2, 5, .1, .1))
   par(mfrow=c(1,1))
   text_3_step_general_0101_CIband = plot_simulatedCI(text_3_step_general_0101,probs=c(0.05,0.95),printFlag=F)
   plot(1:708,text_3_step_general_0101_CIband$mean,type="l",ylab="3-step general effect (texts)",xlab="",bty="n",cex.axis=2.5,cex.lab=2.5,ylim=c(-4,0.5))
