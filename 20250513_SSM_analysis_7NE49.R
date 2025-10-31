@@ -50,7 +50,7 @@ data=add_variables_procedures(data,param);
 data=data.frame(intercept=1,data);colnames(data)
 
 ###############################################################################################################
-######          SSM ignore modeling of covariates  (used in Main paper Table 2&3 and Appendix)            #####
+######          SSM ignore modeling of covariates  (used in Appendix)            #####
 ###############################################################################################################
 # This paper cannot handle missing data for both covariates and outcome
 #   thus, we use SSM ignore temporarily
@@ -87,7 +87,7 @@ data=data.frame(intercept=1,data);colnames(data)
   for(l in formula_var){
     data_ss_ignore_y[is.na(data_ss_ignore_y[,l]),l]=mean(data_ss_ignore_y[,l],na.rm=T)
   }
-  ss_param_y=list(inits=c(log(0.01),log(5)),m0=ssm_y_init$att[1460,],C0=diag(rep(10^3),7),
+  ss_param_y=list(inits=c(log(0.01),log(5)),m0=ssm_y_init_out$att[1460,],C0=diag(rep(10^3),7),
                   AR1_coeffi=NULL,rw_coeffi=c("intercept"),v_cp_param=NULL,
                   w_cp_param=list(list(variable="keycontacts_text_reciprocity_degree_binary",segments=2,changepoints=c(600),fixed_cpts=F),
                                   #list(variable="keycontacts_text_reciprocity_degree_binary_1",segments=2,changepoints=c(900),fixed_cpts=F),
@@ -111,16 +111,16 @@ data=data.frame(intercept=1,data);colnames(data)
   colnames(ssm_y_all)=c("Estimate","Std.Error","99% CI","95% CI", "90% CI")
   ssm_y_all
   #                                                          Estimate  Std.Error  99% CI          95% CI          90% CI
-  # (Intercept)                                              5.455**   1.040     (2.776,8.135)    (3.416,7.494)   (3.744,7.166)
-  # negative_total_1                                         0.213**   0.037     (0.119,0.308)    (0.141,0.285)   (0.153,0.273)
-  # keycontacts_call_totaldegree_binary                      0.031     0.349     (-0.869,0.931)   (-0.653,0.716)  (-0.543,0.606)
-  # keycontacts_call_totaldegree_binary_1                    0.545     0.341     (-0.332,1.422)   (-0.122,1.212)  (-0.015,1.105)
-  # keycontacts_text_reciprocity_degree_binary(period1)     -0.197     0.855     (-2.4,2.007)     (-1.873,1.48)   (-1.604,1.211)
-  # keycontacts_text_reciprocity_degree_binary(period2)      0.789     0.509     (-0.523,2.101)   (-0.21,1.787)   (-0.049,1.627)
-  # keycontacts_text_reciprocity_degree_binary_1             0.034     0.434     (-1.084,1.153)   (-0.817,0.886)  (-0.68,0.749)
-  # logit_TAM_phone_1(period1)                               0.555     0.703     (-1.255,2.366)   (-0.822,1.933)  (-0.601,1.711)
-  # logit_TAM_phone_1(period2)                              -0.770     0.609     (-2.339,0.798)   (-1.964,0.423)  (-1.772,0.231)
-  # logit_TAM_phone_1(period3)                               0.204     0.223     (-0.37,0.778)    (-0.233,0.641)  (-0.163,0.571)
+  # (Intercept)                                            5.457     1.040  (2.778,8.136)  (3.418,7.495)  (3.746,7.167)
+  # negative_total_1                                       0.213     0.037  (0.118,0.308)  (0.141,0.285)  (0.153,0.273)
+  # keycontacts_call_totaldegree_binary                    0.031     0.349 (-0.869,0.931) (-0.654,0.716) (-0.544,0.605)
+  # keycontacts_call_totaldegree_binary_1                  0.545     0.341 (-0.332,1.422) (-0.123,1.212) (-0.015,1.105)
+  # keycontacts_text_reciprocity_degree_binary(period1)   -0.198     0.855 (-2.402,2.005) (-1.875,1.478) (-1.605,1.209)
+  # keycontacts_text_reciprocity_degree_binary(period2)    0.789     0.509 (-0.524,2.101)  (-0.21,1.787) (-0.049,1.627)
+  # keycontacts_text_reciprocity_degree_binary_1           0.034     0.434 (-1.085,1.152) (-0.818,0.885) (-0.681,0.748)
+  # logit_TAM_phone_1(period1)                             0.558     0.703 (-1.252,2.368) (-0.819,1.936) (-0.598,1.714)
+  # logit_TAM_phone_1(period2)                            -0.769     0.609   (-2.338,0.8) (-1.963,0.425) (-1.771,0.233)
+  # logit_TAM_phone_1(period3)                             0.204     0.223  (-0.37,0.779) (-0.233,0.641) (-0.163,0.571)
 }
 
 pdf(file = paste(address_appendix,"Rplot_both_7NE49.pdf",sep=""),  
