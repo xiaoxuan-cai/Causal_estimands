@@ -133,17 +133,19 @@ data=data.frame(intercept=1,data);colnames(data)
   rownames(ssm_y_all)=rownames(ssm_y$result)
   colnames(ssm_y_all)=c("Estimate","Std.Error","99% CI","95% CI", "90% CI")
   ssm_y_all
-  #                                                          Estimate  Std.Error  99% CI          95% CI          90% CI
-  # (Intercept)                                            5.457     1.040  (2.778,8.136)  (3.418,7.495)  (3.746,7.167)
-  # negative_total_1                                       0.213     0.037  (0.118,0.308)  (0.141,0.285)  (0.153,0.273)
-  # keycontacts_call_totaldegree_binary                    0.031     0.349 (-0.869,0.931) (-0.654,0.716) (-0.544,0.605)
-  # keycontacts_call_totaldegree_binary_1                  0.545     0.341 (-0.332,1.422) (-0.123,1.212) (-0.015,1.105)
-  # keycontacts_text_reciprocity_degree_binary(period1)   -0.198     0.855 (-2.402,2.005) (-1.875,1.478) (-1.605,1.209)
-  # keycontacts_text_reciprocity_degree_binary(period2)    0.789     0.509 (-0.524,2.101)  (-0.21,1.787) (-0.049,1.627)
-  # keycontacts_text_reciprocity_degree_binary_1           0.034     0.434 (-1.085,1.152) (-0.818,0.885) (-0.681,0.748)
-  # logit_TAM_phone_1(period1)                             0.558     0.703 (-1.252,2.368) (-0.819,1.936) (-0.598,1.714)
-  # logit_TAM_phone_1(period2)                            -0.769     0.609   (-2.338,0.8) (-1.963,0.425) (-1.771,0.233)
-  # logit_TAM_phone_1(period3)                             0.204     0.223  (-0.37,0.779) (-0.233,0.641) (-0.163,0.571)
+  #                                                        Estimate  Std.Error  99% CI          95% CI          90% CI
+  # (Intercept)                                            5.866**     1.001  (3.288,8.445)  (3.905,7.828)   (4.22,7.513)
+  # negative_total_1                                       0.220**     0.037  (0.125,0.315)  (0.148,0.292)    (0.16,0.28)
+  # keycontacts_call_totaldegree_binary(period1)           0.129     0.673 (-1.605,1.863) (-1.191,1.449) (-0.979,1.236)
+  # keycontacts_call_totaldegree_binary(period2)           0.981     0.617  (-0.608,2.57)  (-0.228,2.19) (-0.034,1.996)
+  # keycontacts_call_totaldegree_binary(period3)          -0.676     0.503 (-1.972,0.619) (-1.662,0.309) (-1.504,0.151)
+  # keycontacts_call_totaldegree_binary_1                  0.486     0.342 (-0.394,1.367) (-0.184,1.156) (-0.076,1.049)
+  # keycontacts_text_reciprocity_degree_binary(period1)   -0.074     0.752 (-2.012,1.864) (-1.549,1.401) (-1.312,1.164)
+  # keycontacts_text_reciprocity_degree_binary(period2)    0.772     0.545 (-0.632,2.175)  (-0.296,1.84) (-0.125,1.668)
+  # keycontacts_text_reciprocity_degree_binary_1          -0.021     0.432 (-1.134,1.092) (-0.868,0.826)  (-0.732,0.69)
+  # logit_TAM_phone_1(period1)                             0.587     0.704 (-1.227,2.401) (-0.793,1.967) (-0.571,1.745)
+  # logit_TAM_phone_1(period2)                            -0.647     0.606 (-2.207,0.913)  (-1.834,0.54) (-1.644,0.349)
+  # logit_TAM_phone_1(period3)                             0.191     0.222 (-0.381,0.763) (-0.244,0.626) (-0.174,0.556)
 }
 
 pdf(file = paste(address_appendix,"Rplot_both_7NE49.pdf",sep=""),  
