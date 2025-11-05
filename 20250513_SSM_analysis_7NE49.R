@@ -48,6 +48,15 @@ data=data.frame(Date=data_7NE49$Date,negative_total=data_7NE49$negative_total,
 param=list(list(lagged_param=list(variables=colnames(data)[-1],param=rep(1,length(colnames(data)[-1])))))
 data=add_variables_procedures(data,param);
 data=data.frame(intercept=1,data);colnames(data)
+{
+  # carefully review the raw data and then there is a clear change of pattern 
+  # -> in preparation of potential change points
+  plot(data$negative_total,type="l") # seems to change around t=1000 
+  plot(data_7NE49$keycontacts_call_totaldegree) # seems to change around t=600 and t=900 
+  plot(data_7NE49$keycontacts_text_reciprocity_degree) # super clear pattern change between t=250 and t=900, zero text messages at all 
+  plot(data_7NE49$TAM_phone) # super clear pattern change between t=600 and t=900
+  plot(data$logit_TAM_phone_1) # super clear pattern change between t=600 and t=900
+}
 
 ###############################################################################################################
 ######          SSM ignore modeling of covariates  (used in Appendix)            #####
@@ -70,7 +79,7 @@ data=data.frame(intercept=1,data);colnames(data)
                      data,H=NA) # baseline variance constant
   ssm_y_init_fit=fitSSM(ssm_y_init, inits =rep(0,n_variables+1), method = "BFGS") # n_variables + one NA in H
   ssm_y_init_out=KFS(ssm_y_init_fit$model)
-  plot.KFS(ssm_y_init_out,range=30:1460)
+  plot.KFS(ssm_y_init_out,range=10:1460)
   ssm_y_init_out$model$Q; ssm_y_init_out$model$H
   # check: intercept(1.090972e-06), negative_total_1 (6.2912e-05), 
   #        keycontacts_call_totaldegree_binary (0.004271464), keycontacts_call_totaldegree_binary_1 (9.194463e-08),
@@ -87,17 +96,31 @@ data=data.frame(intercept=1,data);colnames(data)
   for(l in formula_var){
     data_ss_ignore_y[is.na(data_ss_ignore_y[,l]),l]=mean(data_ss_ignore_y[,l],na.rm=T)
   }
+  # used on 2025.10.31
+  # ss_param_y=list(inits=c(log(0.01),log(5)),m0=ssm_y_init_out$att[1460,],C0=diag(rep(10^3),7),
+  #                 AR1_coeffi=NULL,rw_coeffi=c("intercept"),v_cp_param=NULL,
+  #                 w_cp_param=list(list(variable="keycontacts_text_reciprocity_degree_binary",segments=2,changepoints=c(600),fixed_cpts=F),
+  #                                 #list(variable="keycontacts_text_reciprocity_degree_binary_1",segments=2,changepoints=c(900),fixed_cpts=F),
+  #                                 list(variable="logit_TAM_phone_1",segments=3,changepoints=c(400,600),fixed_cpts=F)),
+  #                 max_iteration=100)
+  # updated on 2025.11.05, after careful review of the raw data and the previously fitted ssm
   ss_param_y=list(inits=c(log(0.01),log(5)),m0=ssm_y_init_out$att[1460,],C0=diag(rep(10^3),7),
                   AR1_coeffi=NULL,rw_coeffi=c("intercept"),v_cp_param=NULL,
-                  w_cp_param=list(list(variable="keycontacts_text_reciprocity_degree_binary",segments=2,changepoints=c(600),fixed_cpts=F),
-                                  #list(variable="keycontacts_text_reciprocity_degree_binary_1",segments=2,changepoints=c(900),fixed_cpts=F),
+                  w_cp_param=list(list(variable="keycontacts_call_totaldegree_binary",segments=3,changepoints=c(600,1000),fixed_cpts=F),
+                                  list(variable="keycontacts_text_reciprocity_degree_binary",segments=2,changepoints=c(1000),fixed_cpts=F),
                                   list(variable="logit_TAM_phone_1",segments=3,changepoints=c(400,600),fixed_cpts=F)),
                   max_iteration=100)
-  par(mfrow=c(1,2))
   ssm_y=run.SSM(data_ss=data_ss_ignore_y,formula=formula,ss_param_temp=ss_param_y,max_iteration=100,
                 cpt_learning_param=list(cpt_method="mean",burnin=1/10,mergeband=20,convergence_cri=10),
                 cpt_merge_option="separate",dlm_cpt_learning_option="filter",
                 bandwidth=5,cpt_V =1,printFlag=T)
+  ssm_y$estimated_cpts
+  # $keycontacts_call_totaldegree_binary
+  # [1]  579 1005
+  # $keycontacts_text_reciprocity_degree_binary
+  # [1] 1005
+  # $logit_TAM_phone_1
+  # [1] 423 629
   plot.dlm(ssm_y$out_filter,benchmark = rep(0,7),option="filtered_state",range=30:1460)
   digits=3
   ssm_y_all=cbind(round(ssm_y$result,digits=digits),
