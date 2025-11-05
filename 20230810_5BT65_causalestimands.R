@@ -60,6 +60,7 @@ data=data.frame(intercept=1,data);colnames(data)
   text(10,1.06, "c)",cex=2)
   plot(1:708,data_5BT65$TAM_phone,ylim=c(0,1.1),bty="n",type="l",xlab="Time (days)",ylab="Phone mobility",cex.lab=1.8,cex.axis=1.4)
   text(10,1.06, "d)",cex=2)
+  # plot(1:708,data$logit_TAM_phone,bty="n",type="l",xlab="Time (days)",ylab="Phone mobility",cex.lab=1.8,cex.axis=1.4)
 }
 
 ##############################################################################
@@ -275,12 +276,17 @@ result_ARIMAreg_estimate_y
   }
   ss_param_y=list(inits=c(log(0.2),log(2.5)),m0=ssm_y_init$att[708,],C0=diag(rep(10^3),7),
                      AR1_coeffi=NULL,rw_coeffi=c("intercept"),v_cp_param=NULL,
-                     w_cp_param=list(list(variable="keycontacts_text_reciprocity_degree_binary",segments=3,changepoints=c(560,640),fixed_cpts=F),
+                     w_cp_param=list(list(variable="keycontacts_text_reciprocity_degree_binary",segments=3,changepoints=c(560,640),fixed_cpts=F), # changepoints=c(200,500) arrive the same
                                      list(variable="keycontacts_text_reciprocity_degree_binary_1",segments=2,changepoints=c(460),fixed_cpts=F)))
   ssm_y=run.SSM(data_ss=data_ss_ignore_y,formula=formula,ss_param_temp=ss_param_y,max_iteration=100,
                 cpt_learning_param=list(cpt_method="mean",burnin=1/10,mergeband=20,convergence_cri=10),
                 cpt_merge_option="separate",dlm_cpt_learning_option="filter",
                 bandwidth=5,cpt_V =1,printFlag=T)
+  # > ssm_y$estimated_cpts
+  # $keycontacts_text_reciprocity_degree_binary
+  # [1] 561 641
+  # $keycontacts_text_reciprocity_degree_binary_1
+  # [1] 461
   plot.dlm(ssm_y$out_filter,benchmark = rep(0,7),option="filtered_state",range=30:708)
   digits=3
   ssm_y_all=cbind(round(ssm_y$result,digits=digits),
