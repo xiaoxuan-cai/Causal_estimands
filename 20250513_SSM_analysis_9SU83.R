@@ -19,19 +19,6 @@
 #       6. random walk variables change from {"intercept","TAM_phone_ave_1"} to "intercept"
 #            period-stable variables change from "text_outdegree" to {"text_outdegree","text_outdegree_1","TAM_phone_ave"}
 # Results: The fitted SSM outcome plot for participant 9SU83 is included in the Appendix.
-
-
-# File: 20250513_MCEMSSM_analysis_9SU83.R
-# Date: 2025.05.13
-# Author: Xiaoxuan Cai (contact nmcaixiaoxuan@gmail.com for questions)
-# Goal: 1) produce descriptive graphs for raw data
-#       2) apply SSMimpute, MCEM_SSM and compare their performances on real data
-# Note: compared to "/Users/xiaoxuancai/Documents/GitHub/SSMimpute/20221114_SSMimpute_analysis_9SU83.R"
-#       SSM and SSMimpute versions have been updated to version 3, providing identical results to the previous versions.
-#       analysis results have changed due to the 
-#         1. switch from using "TAM_phone_ave" to "TAM_phone_ave_1"
-#         2. random walk variables change from {"intercept","TAM_phone_ave_1"} to "intercept"
-#            period-stable variables change from "text_outdegree" to {"text_outdegree","text_outdegree_1","TAM_phone_ave"}
 source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 1_packages.R")
 source("/Users/xiaoxuancai/Documents/GitHub/mHealth_data_processing/Summary 2_helper functions.R")
 source("/Users/xiaoxuancai/Documents/GitHub/Causal_estimands/helper_causal estimands.R")
@@ -60,6 +47,13 @@ data=data.frame(Date=data_9SU83$Date,negative_total=data_9SU83$negative_total,
 param=list(list(lagged_param=list(variables=colnames(data)[-1],param=rep(1,length(colnames(data)[-1])))))
 data=add_variables_procedures(data,param);
 data=data.frame(intercept=1,data);colnames(data)
+plot(data_9SU83$negative_total,type="l") # no clear change points
+plot(data_9SU83$keycontacts_call_totaldegree,type="l") # no clear change points
+plot(data_9SU83$keycontacts_text_reciprocity_degree,type="l") # no clear change points
+plot(data_9SU83$TAM_phone,type="l") # potential change point after t=100
+
+
+
 ###############################################################################################################
 ######          SSM ignore modeling of covariates  (used in Appendix)            #####
 ###############################################################################################################
@@ -98,17 +92,9 @@ data=data.frame(intercept=1,data);colnames(data)
   for(l in formula_var){
     data_ss_ignore_y[is.na(data_ss_ignore_y[,l]),l]=mean(data_ss_ignore_y[,l],na.rm=T)
   }
-  ss_param_y=list(inits=c(log(0.01),log(3)),m0=ssm_y_init_out$att[163,],C0=diag(rep(10^3),7),
-                  AR1_coeffi=NULL,rw_coeffi=c("negative_total_1"),v_cp_param=NULL,
-                  w_cp_param=list(list(variable="keycontacts_call_totaldegree_binary",segments=2,changepoints=c(100),fixed_cpts=F),
-                                  list(variable="keycontacts_call_totaldegree_binary_1",segments=2,changepoints=c(50),fixed_cpts=F)),
-                  max_iteration=100)
   ss_param_y=list(inits=c(log(3)),m0=ssm_y_init_out$att[163,],C0=diag(rep(10^3),7),
                     AR1_coeffi=NULL,rw_coeffi=NULL,v_cp_param=NULL,w_cp_param=NULL,
                     max_iteration=100)
-  
-  
-  par(mfrow=c(1,2))
   ssm_y=run.SSM(data_ss=data_ss_ignore_y,formula=formula,ss_param_temp=ss_param_y,max_iteration=100,
                 cpt_learning_param=list(cpt_method="mean",burnin=1/10,mergeband=20,convergence_cri=10),
                 cpt_merge_option="separate",dlm_cpt_learning_option="filter",
@@ -126,16 +112,13 @@ data=data.frame(intercept=1,data);colnames(data)
   colnames(ssm_y_all)=c("Estimate","Std.Error","99% CI","95% CI", "90% CI")
   ssm_y_all
   #                                                          Estimate  Std.Error  99% CI          95% CI          90% CI
-  # (Intercept)                                            5.457     1.040  (2.778,8.136)  (3.418,7.495)  (3.746,7.167)
-  # (Intercept)                                      -0.168     1.002 (-2.749,2.414) (-2.132,1.797) (-1.816,1.481)
-  # negative_total_1                                     NA        NA        (NA,NA)        (NA,NA)        (NA,NA)
-  # keycontacts_call_totaldegree_binary(period1)      0.010     0.524  (-1.34,1.359) (-1.017,1.036) (-0.852,0.871)
-  # keycontacts_call_totaldegree_binary(period2)     -0.302     0.637  (-1.944,1.34) (-1.551,0.948)  (-1.35,0.747)
-  # keycontacts_call_totaldegree_binary_1(period1)    0.560     0.635 (-1.077,2.196) (-0.685,1.804) (-0.485,1.604)
-  # keycontacts_call_totaldegree_binary_1(period2)    3.171     0.500  (1.883,4.459)  (2.191,4.151)  (2.349,3.994)
-  # keycontacts_text_reciprocity_degree_binary       -0.364     0.598 (-1.904,1.175) (-1.536,0.807) (-1.347,0.619)
-  # keycontacts_text_reciprocity_degree_binary_1      0.258     0.712 (-1.575,2.091) (-1.136,1.653) (-0.912,1.429)
-  # logit_TAM_phone_1                                -0.281     0.238 (-0.894,0.333) (-0.747,0.186) (-0.672,0.111)
+  # (Intercept)                                    -0.255     2.050 (-5.536,5.026) (-4.274,3.763) (-3.628,3.117)
+  # negative_total_1                                0.104     0.190 (-0.385,0.592) (-0.268,0.475) (-0.208,0.415)
+  # keycontacts_call_totaldegree_binary            -0.343     0.782 (-2.359,1.672)  (-1.877,1.19)  (-1.63,0.944)
+  # keycontacts_call_totaldegree_binary_1           0.285     0.799 (-1.774,2.344) (-1.282,1.852)    (-1.03,1.6)
+  # keycontacts_text_reciprocity_degree_binary      0.278     1.425 (-3.393,3.948)  (-2.515,3.07) (-2.066,2.621)
+  # keycontacts_text_reciprocity_degree_binary_1    0.999     1.351 (-2.481,4.479) (-1.649,3.647) (-1.223,3.222)
+  # logit_TAM_phone_1                              -0.352     0.463 (-1.545,0.841)  (-1.26,0.556)  (-1.114,0.41)
 }
 pdf(file = paste(address_appendix,"Rplot_both_9SU83.pdf",sep=""),  
     width = 15, height = 4)
@@ -146,7 +129,7 @@ plot(1:n,data$negative_total,type="l",bty="n",xlab="Time (days)",ylab="Negative 
 mtext("Subject 4 (Bipolar I)",side = 2, adj = 0.5, padj=-5,cex=1.8)
 text(x=10,y=7,label="e)",cex=2)
 # time-invariant coefficient for outdegree of texts yesterday, beta_22
-plot(1:n,ssm_y$out_filter$m[,5],type="l",ylab=expression(paste(beta["21,t"]," (text connectivity)")),xlab="Time (days)" ,bty="n",cex.lab=1.5,cex.axis=2, ylim=c(-4,3))
+plot(1:n,ssm_y$out_filter$m[,5],type="l",ylab=expression(paste(beta["21,t"]," (text connectivity)")),xlab="Time (days)" ,bty="n",cex.lab=1.5,cex.axis=2, ylim=c(-7,7))
 sd=unlist(lapply(1:n,function(i){sqrt(diag(dlmSvd2var(ssm_y$out_filter$U.C[[i]],ssm_y$out_filter$D.C[i,]))[5])}))
 polygon(c(1:n,rev(1:n)),c(ssm_y$out_filter$m[,5]+qnorm(0.975)*sd,rev(ssm_y$out_filter$m[,5]-qnorm(0.975)*sd)),col="grey90",border="grey")
 points(1:n,ssm_y$out_filter$m[,5],type="l")
@@ -155,6 +138,6 @@ legend("bottomright",legend=c("estimate", "95% CI"),
        pch = c(NA,15), lty=c(1,NA), col=c("black","grey"),
        bty = "n", # remove the bounder of the legend
        lwd = c(1,NA), pt.bg = c(NA,"grey90"),cex=1.5)
-text(x=10,y=2.9,label="f)",cex=2)
+text(x=10,y=6.9,label="f)",cex=2)
 dev.off()
 
